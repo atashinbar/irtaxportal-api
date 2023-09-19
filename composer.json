@@ -1,0 +1,20 @@
+{
+	"name": "awecodebox/wooirtax",
+	"description": "Build your custom WooIRTax with ease",
+	"type": "project",
+	"license": "GPL-3.0-or-later",
+	"autoload": {
+		"psr-4": {
+			"IRTaxPortalAPI\\": "",
+			"IRTaxPortalAPI\\Admin\\": "admin/",
+			"IRTaxPortalAPI\\Admin\\Services\\": "admin/services/"
+		}
+	},
+	"authors": [
+		{
+			"name": "Sina Shamsizadeh",
+			"email": "sina.shams73@gmail.com"
+		}
+	],
+	"require": {}
+}
