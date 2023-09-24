@@ -20,7 +20,9 @@ class Login extends Registrerar {
 	 */
 	public static function authentication( $request ) {
 		$params	= $request->get_params();
-		$login_response = wp_remote_post( 'http://webnus.local/?rest_route=/auth/v1/auth', array(
+		$url = home_url('/');
+
+		$login_response = wp_remote_post( $url . '?rest_route=/auth/v1/auth', array(
 			'body'    => [
 				'email' => $params['username'],
 				'password' => $params['password']
@@ -32,7 +34,7 @@ class Login extends Registrerar {
 		$response = json_decode($login_response['body']);
 		$jwt = $response->data->jwt;
 
-		$login_validate = wp_remote_post( 'http://webnus.local/?rest_route=/auth/v1/auth/validate', array(
+		$login_validate = wp_remote_post( $url . '?rest_route=/auth/v1/auth/validate', array(
 			'body'    => [
 				'JWT' => $jwt,
 			],
