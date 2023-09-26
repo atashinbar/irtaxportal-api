@@ -64,7 +64,24 @@ class Registrerar {
 				array(
 					'methods'             => \WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'login' ),
-					// 'permission_callback' => array( $this, 'permission_callback' ),
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
+
+		register_rest_route(
+			'IRTaxPortalAPI/v1',
+			'products',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_products' ),
+					'permission_callback' => '__return_true',
+				),
+				array(
+					'methods'             => \WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'update_product' ),
+					'permission_callback' => '__return_true',
 				),
 			)
 		);
@@ -111,5 +128,23 @@ class Registrerar {
 	 */
 	public function login( $request ) {
 		return Login::authentication( $request );
+	}
+
+	/**
+	 * get products
+	 *
+	 * @since 1.0.0
+	 */
+	public function get_products( $request ) {
+		return Products::get_all_products( $request );
+	}
+
+	/**
+	 * update product
+	 *
+	 * @since 1.0.0
+	 */
+	public function update_product( $request ) {
+		return Products::update_single_product( $request );
 	}
 }

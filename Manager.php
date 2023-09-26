@@ -58,14 +58,29 @@ final class Manager {
 	 * @since 1.0.0
 	 */
 	public function install() {
-		// if ( ! get_option( 'IRTaxPortalAPI_settings' ) ) {
-		// 	add_option( 'IRTaxPortalAPI_settings', json_encode( array() ) );
-		// }
-		// if ( ! get_option( 'IRTaxPortalAPI_identifiers' ) ) {
-		// 	add_option( 'IRTaxPortalAPI_identifiers', json_encode( array(
-		// 		array( 'productID' => '', 'productName' => '' )
-		// 	) ) );
-		// }
+		$this->createProductsTable();
+	}
+
+	/**
+	 * create products table in database
+	 *
+	 * @since 1.0.0
+	 */
+	public function createProductsTable() {
+		global $wpdb;
+
+   		$table_name = $wpdb->prefix . "MA_products"; 
+		$charset_collate = $wpdb->get_charset_collate();
+
+		$sql = "CREATE TABLE $table_name (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		user_id INT NOT NULL,
+		products longtext NOT NULL,
+		PRIMARY KEY  (id)
+		) $charset_collate;";
+
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		dbDelta( $sql );
 	}
 
 	/**
