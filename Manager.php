@@ -50,6 +50,7 @@ final class Manager {
 	private function hooks() {
 		add_action( 'init', [ $this, 'load_plugin_textdomain'] );
 		add_filter( 'rest_url_prefix', [$this,'MAChangeAPIRoute']);
+		
 	}
 
 	/**
