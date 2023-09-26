@@ -15,7 +15,7 @@
 
 	<rule ref="WordPress.WP.I18n">
 		<properties>
-			<property name="text_domain" value="IRTaxPortalAPI" />
+			<property name="text_domain" value="MoadianAbzar" />
 		</properties>
 	</rule>
 </ruleset>

@@ -7,24 +7,24 @@ namespace Composer\Autoload;
 class ComposerStaticInit5b60e922976a5650244b4c644a5d982c
 {
     public static $prefixLengthsPsr4 = array (
-        'I' => 
+        'M' => 
         array (
-            'IRTaxPortalAPI\\Admin\\Services\\' => 30,
-            'IRTaxPortalAPI\\Admin\\' => 21,
-            'IRTaxPortalAPI\\' => 15,
+            'MoadianAbzar\\Admin\\Services\\' => 28,
+            'MoadianAbzar\\Admin\\' => 19,
+            'MoadianAbzar\\' => 13,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'IRTaxPortalAPI\\Admin\\Services\\' => 
+        'MoadianAbzar\\Admin\\Services\\' => 
         array (
             0 => __DIR__ . '/../..' . '/admin/services',
         ),
-        'IRTaxPortalAPI\\Admin\\' => 
+        'MoadianAbzar\\Admin\\' => 
         array (
             0 => __DIR__ . '/../..' . '/admin',
         ),
-        'IRTaxPortalAPI\\' => 
+        'MoadianAbzar\\' => 
         array (
             0 => __DIR__ . '/../..' . '/',
         ),

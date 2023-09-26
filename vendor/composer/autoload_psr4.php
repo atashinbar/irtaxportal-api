@@ -6,7 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'IRTaxPortalAPI\\Admin\\Services\\' => array($baseDir . '/admin/services'),
-    'IRTaxPortalAPI\\Admin\\' => array($baseDir . '/admin'),
-    'IRTaxPortalAPI\\' => array($baseDir . '/'),
+    'MoadianAbzar\\Admin\\Services\\' => array($baseDir . '/admin/services'),
+    'MoadianAbzar\\Admin\\' => array($baseDir . '/admin'),
+    'MoadianAbzar\\' => array($baseDir . '/'),
 );

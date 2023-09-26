@@ -2,10 +2,10 @@
 /**
  * Manager.
  *
- * @package IRTaxPortalAPI
+ * @package MoadianAbzar
  */
 
-namespace IRTaxPortalAPI;
+namespace MoadianAbzar;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -94,13 +94,13 @@ final class Manager {
 	}
 
 	/**
-	 * Load the IRTaxPortalAPI dependencies.
+	 * Load the MoadianAbzar dependencies.
 	 *
 	 * @since 1.0.0
 	 */
 	private function setup() {
 		apply_filters(
-			'IRTaxPortalAPI/setup',
+			'MoadianAbzar/setup',
 			[
 				'rest_api'			=> Admin\Services\Registrerar::instance()
 			]
@@ -109,7 +109,7 @@ final class Manager {
 		/**
 		 * Plugin loaded hook
 		 */
-		do_action( 'IRTaxPortalAPI/loaded' );
+		do_action( 'MoadianAbzar/loaded' );
 	}
 
 	/**
@@ -118,7 +118,7 @@ final class Manager {
 	 * @since	1.0.0
 	 */
 	public function load_plugin_textdomain() {
-		load_plugin_textdomain( 'irtaxportal_api', false, basename( dirname( __FILE__ ) ) . '/languages' );
+		load_plugin_textdomain( 'moadian_abzar', false, basename( dirname( __FILE__ ) ) . '/languages' );
 	}
 
 }

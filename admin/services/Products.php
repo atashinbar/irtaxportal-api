@@ -5,7 +5,7 @@
  * @since 1.0.0
  */
 
-namespace IRTaxPortalAPI\Admin\Services;
+namespace MoadianAbzar\Admin\Services;
 
 defined( 'ABSPATH' ) || exit;
 

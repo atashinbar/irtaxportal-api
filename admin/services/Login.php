@@ -5,7 +5,7 @@
  * @since 1.0.0
  */
 
-namespace IRTaxPortalAPI\Admin\Services;
+namespace MoadianAbzar\Admin\Services;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -67,16 +67,16 @@ class Login extends Registrerar {
 	 */
 	public static function checkToken( $request ) {
 		$params		= $request->get_params();
-		$old_settings	= get_option( 'IRTaxPortalAPI_admin' );
+		$old_settings	= get_option( 'MoadianAbzar_admin' );
 
 		if ( $old_settings === $params) return static::create_response( $old_settings, 200 );
-		$update_status = update_option( 'IRTaxPortalAPI_admin', $params  );
-		$settings	= get_option( 'IRTaxPortalAPI_admin' );
+		$update_status = update_option( 'MoadianAbzar_admin', $params  );
+		$settings	= get_option( 'MoadianAbzar_admin' );
 
 		if ( $update_status ) {
 			return static::create_response( $settings, 200 );
 		}
 
-		return static::create_response( __( 'There is an unexpected error', 'irtaxportal_api' ), 403 );
+		return static::create_response( __( 'There is an unexpected error', 'moadian_abzar' ), 403 );
 	}
 }

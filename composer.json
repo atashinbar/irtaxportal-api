@@ -5,9 +5,9 @@
 	"license": "GPL-3.0-or-later",
 	"autoload": {
 		"psr-4": {
-			"IRTaxPortalAPI\\": "",
-			"IRTaxPortalAPI\\Admin\\": "admin/",
-			"IRTaxPortalAPI\\Admin\\Services\\": "admin/services/"
+			"MoadianAbzar\\": "",
+			"MoadianAbzar\\Admin\\": "admin/",
+			"MoadianAbzar\\Admin\\Services\\": "admin/services/"
 		}
 	},
 	"authors": [

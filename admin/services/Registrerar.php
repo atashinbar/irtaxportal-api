@@ -5,7 +5,7 @@
  * @since 1.0.0
  */
 
-namespace IRTaxPortalAPI\Admin\Services;
+namespace MoadianAbzar\Admin\Services;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -58,7 +58,7 @@ class Registrerar {
 	public function register_routes() {
 
 		register_rest_route(
-			'IRTaxPortalAPI/v1',
+			'MoadianAbzar/v1',
 			'authentication',
 			array(
 				array(
@@ -70,7 +70,7 @@ class Registrerar {
 		);
 
 		register_rest_route(
-			'IRTaxPortalAPI/v1',
+			'MoadianAbzar/v1',
 			'products',
 			array(
 				array(

@@ -10,28 +10,28 @@
  * Author URI:        https://profiles.wordpress.org/irwp/
  * License:           GPL v3 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       irtaxportal_api
+ * Text Domain:       moadian_abzar
  * Domain Path:       /languages
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'IRTAXPORTALAPI_VERSION', '1.0.0' );
-define( 'IRTAXPORTALAPI_PATH', plugin_dir_path( __FILE__ ) );
-define( 'IRTAXPORTALAPI_URL', plugin_dir_url( __FILE__ ) );
-define( 'IRTAXPORTALAPI_ASSETS', IRTAXPORTALAPI_URL . 'public/dist/' );
-define( 'IRTAXPORTALAPI_PREFIX', 'irtaxportal_api' );
+define( 'MOADIANABZAR_VERSION', '1.0.0' );
+define( 'MOADIANABZAR_PATH', plugin_dir_path( __FILE__ ) );
+define( 'MOADIANABZAR_URL', plugin_dir_url( __FILE__ ) );
+define( 'MOADIANABZAR_ASSETS', MOADIANABZAR_URL . 'public/dist/' );
+define( 'MOADIANABZAR_PREFIX', 'moadian_abzar' );
 
-require IRTAXPORTALAPI_PATH . 'vendor/autoload.php';
+require MOADIANABZAR_PATH . 'vendor/autoload.php';
 
 /**
  * Get an instance of the Plugin class.
  *
  * @since 1.0.0
  */
-if ( class_exists( 'IRTaxPortalAPI\Manager' ) ) {
+if ( class_exists( 'MoadianAbzar\Manager' ) ) {
 
-	IRTaxPortalAPI\Manager::instance();
+	MoadianAbzar\Manager::instance();
 }
 
 /**
@@ -39,7 +39,7 @@ if ( class_exists( 'IRTaxPortalAPI\Manager' ) ) {
  *
  * @since 1.0.0
  */
-function IRTaxPortalAPI_activation() {
-	IRTaxPortalAPI\Manager::instance()->install();
+function MoadianAbzar_activation() {
+	MoadianAbzar\Manager::instance()->install();
 }
-register_activation_hook( __FILE__, 'IRTaxPortalAPI_activation' );
+register_activation_hook( __FILE__, 'MoadianAbzar_activation' );
