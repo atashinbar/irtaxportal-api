@@ -120,7 +120,7 @@ class Registrerar {
 				$success = $body->success;				;
 				return new \WP_Error(
 					'rest_forbidden',
-					$body,
+					$success,
 					array( 'status' => 203 )
 				);
 			}
