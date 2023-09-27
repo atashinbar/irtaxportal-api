@@ -117,10 +117,10 @@ class Registrerar {
 					],
 				) );
 				$body = json_decode($login_validate['body']);
-				$success = $body['success'];
+				$success = $body;
 				return new \WP_Error(
 					'rest_forbidden',
-					$success,
+					$body,
 					array( 'status' => 203 )
 				);
 			}
