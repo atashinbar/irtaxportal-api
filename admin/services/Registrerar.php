@@ -117,7 +117,7 @@ class Registrerar {
 					],
 				) );
 				$body = json_decode($login_validate['body']);
-				$success = $body->success;	
+				$success = $body->success;
 				if (!$success) {
 					return new \WP_Error(
 						'rest_forbidden',
@@ -128,20 +128,11 @@ class Registrerar {
 				return true;
 			}
 		}
-
-
-		
-		// Check if the user is authenticated or has the necessary capabilities
-		if ( ! is_user_logged_in() || ! current_user_can( 'edit_posts' ) ) {
-			return new \WP_Error(
-				'rest_forbidden',
-				esc_html__( 'You do not have permission to access this route.', 'text-domain' ),
-				array( 'status' => 403 )
-			);
-		}
-
-		// Return true if the user has the necessary permissions
-		return true;
+		return new \WP_Error(
+			'rest_forbidden',
+			esc_html__( 'دسترسی شما به این بخش محدود شده است', 'text-domain' ),
+			array( 'status' => 203 )
+		);
 	}
 
 	/**
