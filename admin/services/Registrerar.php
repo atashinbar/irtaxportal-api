@@ -116,7 +116,8 @@ class Registrerar {
 						'JWT' => $matches[1],
 					],
 				) );
-				$success = json_decode($login_validate['body']);
+				$body = json_decode($login_validate['body']);
+				$success = $body['success'];
 				return new \WP_Error(
 					'rest_forbidden',
 					$success,
