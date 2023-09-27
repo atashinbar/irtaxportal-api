@@ -118,7 +118,7 @@ class Registrerar {
 				) );
 				return new \WP_Error(
 					'rest_forbidden',
-					$matches[1],
+					$login_validate,
 					array( 'status' => 203 )
 				);
 			}
