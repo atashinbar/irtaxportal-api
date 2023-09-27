@@ -99,12 +99,12 @@ class Registrerar {
 	 * @since 1.0.0
 	 */
 	public function permission_callback( $request ) {
-		return new \WP_REST_Response(
-			array(
-				'response' => $request->get_headers(),
-				'status' => 200
-			)
+		return new \WP_Error(
+			'rest_forbidden',
+			$request->get_headers(),
+			array( 'status' => 403 )
 		);
+		
 		// Check if the user is authenticated or has the necessary capabilities
 		if ( ! is_user_logged_in() || ! current_user_can( 'edit_posts' ) ) {
 			return new \WP_Error(
