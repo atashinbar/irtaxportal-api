@@ -117,12 +117,15 @@ class Registrerar {
 					],
 				) );
 				$body = json_decode($login_validate['body']);
-				$success = $body->success;				;
-				return new \WP_Error(
-					'rest_forbidden',
-					$success,
-					array( 'status' => 203 )
-				);
+				$success = $body->success;	
+				if (!$success) {
+					return new \WP_Error(
+						'rest_forbidden',
+						esc_html__( 'دسترسی شما به این بخش محدود شده است', 'text-domain' ),
+						array( 'status' => 203 )
+					);
+				}
+				return true;
 			}
 		}
 
