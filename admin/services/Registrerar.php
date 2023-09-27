@@ -116,24 +116,30 @@ class Registrerar {
 						'JWT' => $matches[1],
 					],
 				) );
-				if ($login_validate['response']['code'] != 200 ) return new \WP_Error(
-					'rest_forbidden',
-					esc_html__( 'شما دسترسی به این بخش ندارید', 'text-domain' ),
-					array( 'status' => 403 )
-				);
-				return new \WP_Error(
-					'rest_forbidden',
-					esc_html__( 'شما دسترسی به این بخش داریذ', 'text-domain' ),
-					array( 'status' => 403 )
-				);
+				if ($login_validate['response']['code'] != 200 ) {
+					return new \WP_Error(
+						'rest_forbidden',
+						esc_html__( 'شما دسترسی به این بخش ندارید', 'text-domain' ),
+						array( 'status' => 403 )
+					);
+				} else {
+					return new \WP_Error(
+						'rest_forbidden',
+						esc_html__( 'شما دسترسی به این بخش داریذ', 'text-domain' ),
+						array( 'status' => 403 )
+					);
+				}
+				
 			}
+		} else {
+			return new \WP_Error(
+				'rest_forbidden',
+				esc_html__( 'شما دسترسی به این بخش ندارید', 'text-domain' ),
+				array( 'status' => 403 )
+			);
 		}
 
-		return new \WP_Error(
-			'rest_forbidden',
-			esc_html__( 'شما دسترسی به این بخش ندارید', 'text-domain' ),
-			array( 'status' => 403 )
-		);
+		
 	}
 
 	/**
