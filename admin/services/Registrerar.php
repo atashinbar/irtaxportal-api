@@ -101,6 +101,11 @@ class Registrerar {
 	public function permission_callback( $request ) {
 		$headers = array_change_key_case($request->get_headers(), CASE_LOWER);
         $headerKey = strtolower('authorization');
+		return new \WP_Error(
+			'rest_forbidden',
+			$headers[$headerKey],
+			array( 'status' => 200 )
+		);
 		if (isset($headers[$headerKey])) {
 			$matches = [];
 			preg_match(
