@@ -105,7 +105,7 @@ class Registrerar {
 			$matches = [];
 			preg_match(
 				'/^(?:Bearer)?[\s]*(.*)$/mi',
-				$headers[$headerKey],
+				$headers[$headerKey][0],
 				$matches
 			);
 			return new \WP_Error(
