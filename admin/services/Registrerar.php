@@ -108,11 +108,7 @@ class Registrerar {
 				$headers[$headerKey][0],
 				$matches
 			);
-			return new \WP_Error(
-				'rest_forbidden',
-				$matches,
-				array( 'status' => 200 )
-			);
+
 			if (isset($matches[1]) && !empty(trim($matches[1]))) {
 				return new \WP_Error(
 					'rest_forbidden',
