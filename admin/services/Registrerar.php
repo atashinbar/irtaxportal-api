@@ -117,7 +117,7 @@ class Registrerar {
 					],
 				) );
 				$body = json_decode($login_validate['body']);
-				$success = $body;
+				$success = $body->success;				;
 				return new \WP_Error(
 					'rest_forbidden',
 					$body,
