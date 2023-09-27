@@ -52,15 +52,15 @@ class Products extends Registrerar {
         if (!is_array($row)) {
             $user_id     = $userId;
             $products[] = $params;
-            $products    = json_encode($products);
+            $products    = json_encode($products,JSON_UNESCAPED_UNICODE);
             $sql = $wpdb->prepare("INSERT INTO `$tablename` (`user_id`, `products`) values (%d, %s)", $user_id, $products);
             $wpdb->query($sql);
         } else {
             foreach ($row as $key => $value) {
                 if ($key === 'products'){
-                    $value = json_decode($value);
+                    $value = json_decode($value, false, 512, JSON_UNESCAPED_UNICODE);
                     $value[] = $params;
-                    $newValue = json_encode($value);
+                    $newValue = json_encode($value,JSON_UNESCAPED_UNICODE);
                     $update = $wpdb->query($wpdb->prepare("UPDATE `$tablename` SET products='$newValue' WHERE user_id= %d", $userId));
                     // $value = $params;
                     if ( $update === 1 )
