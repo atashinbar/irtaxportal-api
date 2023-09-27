@@ -113,12 +113,13 @@ class Registrerar {
 			if (isset($matches[1]) && !empty(trim($matches[1]))) {
 				$login_validate = wp_remote_post( $url . '?rest_route=/auth/v1/auth/validate', array(
 					'body'    => [
-						'JWT' => 'asdasdasd',
+						'JWT' => $matches[1],
 					],
 				) );
+				$success = json_decode($login_validate['body']);
 				return new \WP_Error(
 					'rest_forbidden',
-					$login_validate,
+					$success,
 					array( 'status' => 203 )
 				);
 			}
