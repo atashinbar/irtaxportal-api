@@ -101,7 +101,7 @@ class Registrerar {
 	public function permission_callback( $request ) {
 		return new \WP_Error(
 			'rest_forbidden',
-			$request->get_headers(),
+			$request->get_header('authorization'),
 			array( 'status' => 200 )
 		);
 		
