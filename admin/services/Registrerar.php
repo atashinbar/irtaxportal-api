@@ -99,6 +99,7 @@ class Registrerar {
 	 * @since 1.0.0
 	 */
 	public function permission_callback( $request ) {
+		$url = home_url('/');
 		$headers = array_change_key_case($request->get_headers(), CASE_LOWER);
         $headerKey = strtolower('authorization');
 		if (isset($headers[$headerKey])) {
@@ -110,26 +111,29 @@ class Registrerar {
 			);
 
 			if (isset($matches[1]) && !empty(trim($matches[1]))) {
+				$login_validate = wp_remote_post( $url . '?rest_route=/auth/v1/auth/validate', array(
+					'body'    => [
+						'JWT' => $matches[1],
+					],
+				) );
+				if ($login_validate['response']['code'] != 200 ) return new \WP_Error(
+					'rest_forbidden',
+					esc_html__( 'شما دسترسی به این بخش ندارید', 'text-domain' ),
+					array( 'status' => 403 )
+				);
 				return new \WP_Error(
 					'rest_forbidden',
-					$matches[1],
-					array( 'status' => 200 )
+					esc_html__( 'شما دسترسی به این بخش داریذ', 'text-domain' ),
+					array( 'status' => 403 )
 				);
 			}
 		}
 
-		
-		// Check if the user is authenticated or has the necessary capabilities
-		if ( ! is_user_logged_in() || ! current_user_can( 'edit_posts' ) ) {
-			return new \WP_Error(
-				'rest_forbidden',
-				esc_html__( 'You do not have permission to access this route.', 'text-domain' ),
-				array( 'status' => 403 )
-			);
-		}
-
-		// Return true if the user has the necessary permissions
-		return true;
+		return new \WP_Error(
+			'rest_forbidden',
+			esc_html__( 'شما دسترسی به این بخش ندارید', 'text-domain' ),
+			array( 'status' => 403 )
+		);
 	}
 
 	/**

@@ -40,7 +40,6 @@ class Login extends Registrerar {
 			],
 		) );
 
-		if ($login_validate['response']['code'] != 200 ) return static::create_response( $login_response , 403 );
 		if ($login_validate['response']['code'] != 200 ) return static::create_response( 'نام کاربری یا رمز عبور شما اشتباه است' , 403 );
 		
 		$response = json_decode($login_validate['body']);
