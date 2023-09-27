@@ -76,7 +76,7 @@ class Registrerar {
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_products' ),
-					'permission_callback' => '__return_true',
+					'permission_callback' => array($this, 'permission_callback'),
 				),
 				array(
 					'methods'             => \WP_REST_Server::EDITABLE,
