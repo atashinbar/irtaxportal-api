@@ -81,12 +81,12 @@ class Registrerar {
 				array(
 					'methods'             => \WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'update_product' ),
-					'permission_callback' => '__return_true',
+					'permission_callback' => array($this , 'permission_callback'),
 				),
 				array(
 					'methods'             => \WP_REST_Server::DELETABLE,
 					'callback'            => array( $this, 'delete_product' ),
-					'permission_callback' => '__return_true',
+					'permission_callback' => array($this , 'permission_callback'),
 				),
 			)
 		);
