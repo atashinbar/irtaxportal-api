@@ -113,7 +113,7 @@ class Registrerar {
 			if (isset($matches[1]) && !empty(trim($matches[1]))) {
 				$login_validate = wp_remote_post( $url . '?rest_route=/auth/v1/auth/validate', array(
 					'body'    => [
-						'JWT' => $matches[1],
+						'JWT' => 'asdasdasd',
 					],
 				) );
 				return new \WP_Error(
