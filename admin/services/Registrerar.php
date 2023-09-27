@@ -62,7 +62,7 @@ class Registrerar {
 			'authentication',
 			array(
 				array(
-					'methods'             => \WP_REST_Server::EDITABLE,
+					'methods'             => \WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'login' ),
 					'permission_callback' => '__return_true',
 				),
@@ -74,10 +74,20 @@ class Registrerar {
 			'products',
 			array(
 				array(
-					'methods'             => \WP_REST_Server::EDITABLE,
+					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_products' ),
 					'permission_callback' => '__return_true',
-				)
+				),
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'update_product' ),
+					'permission_callback' => '__return_true',
+				),
+				array(
+					'methods'             => \WP_REST_Server::DELETABLE,
+					'callback'            => array( $this, 'delete_product' ),
+					'permission_callback' => '__return_true',
+				),
 			)
 		);
 
