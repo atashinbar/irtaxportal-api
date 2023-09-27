@@ -87,7 +87,7 @@ class Products extends Registrerar {
         global $wpdb;
         $tablename = $wpdb->prefix . "MA_products";
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", $userId), ARRAY_A);
-        return static::create_response($row,200);
+        return static::create_response($row->products,200);
 
         if (!is_array($row)) {
             $user_id     = $userId;
