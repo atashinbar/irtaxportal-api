@@ -102,7 +102,7 @@ class Registrerar {
 		return new \WP_Error(
 			'rest_forbidden',
 			$request->get_headers(),
-			array( 'status' => 403 )
+			array( 'status' => 200 )
 		);
 		
 		// Check if the user is authenticated or has the necessary capabilities
