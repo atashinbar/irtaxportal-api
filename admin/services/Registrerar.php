@@ -99,11 +99,25 @@ class Registrerar {
 	 * @since 1.0.0
 	 */
 	public function permission_callback( $request ) {
-		return new \WP_Error(
-			'rest_forbidden',
-			$request->get_header('authorization'),
-			array( 'status' => 200 )
-		);
+		$headers = array_change_key_case($request->get_headers(), CASE_LOWER);
+        $headerKey = strtolower('authorization');
+		if (isset($headers[$headerKey])) {
+			$matches = [];
+			preg_match(
+				'/^(?:Bearer)?[\s]*(.*)$/mi',
+				$headers[$headerKey],
+				$matches
+			);
+
+			if (isset($matches[1]) && !empty(trim($matches[1]))) {
+				return new \WP_Error(
+					'rest_forbidden',
+					$matches[1],
+					array( 'status' => 200 )
+				);
+			}
+		}
+
 		
 		// Check if the user is authenticated or has the necessary capabilities
 		if ( ! is_user_logged_in() || ! current_user_can( 'edit_posts' ) ) {
