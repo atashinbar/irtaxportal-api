@@ -101,7 +101,7 @@ class Registrerar {
 	public function permission_callback( $request ) {
 		return new \WP_Error(
 			'rest_forbidden',
-			$request->get_headers(),
+			esc_html__( 'You do not have permission to access this route.', 'text-domain' ),
 			array( 'status' => 403 )
 		);
 		
