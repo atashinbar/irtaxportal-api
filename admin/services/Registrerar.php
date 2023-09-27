@@ -76,7 +76,7 @@ class Registrerar {
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_products' ),
-					'permission_callback' => '__return_true',
+					'permission_callback' => array($this, 'permission_callback'),
 				),
 				array(
 					'methods'             => \WP_REST_Server::EDITABLE,
@@ -99,6 +99,12 @@ class Registrerar {
 	 * @since 1.0.0
 	 */
 	public function permission_callback( $request ) {
+		return new \WP_REST_Response(
+			array(
+				'response' => $request->get_headers(),
+				'status' => 200
+			)
+		);
 		// Check if the user is authenticated or has the necessary capabilities
 		if ( ! is_user_logged_in() || ! current_user_can( 'edit_posts' ) ) {
 			return new \WP_Error(
