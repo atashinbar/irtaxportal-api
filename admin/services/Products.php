@@ -82,12 +82,12 @@ class Products extends Registrerar {
 	public static function delete_single_product( $request ) {
         $params	= $request->get_params();
 		$userId = get_current_user_id();
-        return static::create_response('asd',200);
         if (!$userId) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
 
         global $wpdb;
         $tablename = $wpdb->prefix . "MA_products";
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", $userId), ARRAY_A);
+        return static::create_response($row,200);
 
         if (!is_array($row)) {
             $user_id     = $userId;
