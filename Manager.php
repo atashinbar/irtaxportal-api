@@ -79,6 +79,7 @@ final class Manager {
 	public function createProductsTable() {
 		global $wpdb;
 
+		// Todo : migrate to seperate file and functions
    		$table_name = $wpdb->prefix . "MA_products"; 
 		$charset_collate = $wpdb->get_charset_collate();
 
@@ -86,6 +87,13 @@ final class Manager {
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
 		user_id INT NOT NULL,
 		products longtext NOT NULL,
+		PRIMARY KEY  (id)
+		) $charset_collate;";
+
+		$sql .= "CREATE TABLE $wpdb->prefix . 'MA_settings' (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		user_id INT NOT NULL,
+		settings longtext NOT NULL,
 		PRIMARY KEY  (id)
 		) $charset_collate;";
 
