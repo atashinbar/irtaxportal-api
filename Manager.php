@@ -80,17 +80,18 @@ final class Manager {
 		global $wpdb;
 
 		// Todo : migrate to seperate file and functions
-   		$table_name = $wpdb->prefix . "MA_products"; 
+   		$MA_products = $wpdb->prefix . "MA_products";
 		$charset_collate = $wpdb->get_charset_collate();
 
-		$sql = "CREATE TABLE $table_name (
+		$sql = "CREATE TABLE $MA_products (
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
 		user_id INT NOT NULL,
 		products longtext NOT NULL,
 		PRIMARY KEY  (id)
 		) $charset_collate;";
 
-		$sql .= "CREATE TABLE $wpdb->prefix . 'MA_settings' (
+		$MA_settings = $wpdb->prefix . "MA_settings";
+		$sql .= "CREATE TABLE $MA_settings (
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
 		user_id INT NOT NULL,
 		settings longtext NOT NULL,
