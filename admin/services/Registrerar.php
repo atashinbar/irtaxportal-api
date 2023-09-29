@@ -91,6 +91,18 @@ class Registrerar {
 			)
 		);
 
+		register_rest_route(
+			'MoadianAbzar/v1',
+			'settings',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'add_company' ),
+					'permission_callback' => array($this , 'permission_callback'),
+				),
+			)
+		);
+
 	}
 
 	/**
@@ -183,5 +195,14 @@ class Registrerar {
 	 */
 	public function delete_product( $request ) {
 		return Products::delete_single_product( $request );
+	}
+
+	/**
+	 * Add Company
+	 *
+	 * @since 1.0.0
+	 */
+	public function add_company( $request ) {
+		return Settings::add_company( $request );
 	}
 }

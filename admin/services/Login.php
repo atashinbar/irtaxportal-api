@@ -29,6 +29,9 @@ class Login extends Registrerar {
 			],
 		) );
 
+		var_dump( $login_response );
+		die();
+
 		if ($login_response['response']['code'] != 200 ) return static::create_response( 'ورود شما ناموفق بود. لطفا نام کاربری و رمز عبور خود را  به صورت صحیح وارد کنید' , 403 );
 
 		$response = json_decode($login_response['body']);
@@ -41,7 +44,7 @@ class Login extends Registrerar {
 		) );
 
 		if ($login_validate['response']['code'] != 200 ) return static::create_response( 'نام کاربری یا رمز عبور شما اشتباه است' , 403 );
-		
+
 		$response = json_decode($login_validate['body']);
 		$data = $response->data;
 		$user = $data->user;
@@ -54,9 +57,9 @@ class Login extends Registrerar {
 				'roles' => $roles
 			]
 		];
-		
+
 		return static::create_response( $userInfo, 200 );
-		
+
 	}
 
 	/**
