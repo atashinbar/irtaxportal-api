@@ -59,19 +59,22 @@ class Products extends Registrerar {
             foreach ($row as $key => $value) {
                 if ($key === 'products'){
                     $value = json_decode($value, false, 512, JSON_UNESCAPED_UNICODE);
+					foreach ($value as $key => $valuee) {
+						if ($valuee->id === $params['id']) return static::create_response( 'شناسه محصول قبلا توسط شما ثبت شده است. لطفا شناسه دیگری وارد نمایید', 403 );
+					}
                     $value[] = $params;
                     $newValue = json_encode($value,JSON_UNESCAPED_UNICODE);
                     $update = $wpdb->query($wpdb->prepare("UPDATE `$tablename` SET products='$newValue' WHERE user_id= %d", $userId));
                     // $value = $params;
                     if ( $update === 1 )
-                    return static::create_response( 'با موفقیت اپدیت شد', 200 );
+                    return static::create_response( 'شناسه محصول اضافه شد', 200 );
                     else
                     return static::create_response( 'خطایی رخ داده است', 403 );
                 }
             }
         }
 
-		return static::create_response( 'با موفقیت اپدیت شد', 200 );
+		return static::create_response( 'شناسه محصول اضافه شد', 200 );
 	}
 
 	/**
