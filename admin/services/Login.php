@@ -29,7 +29,7 @@ class Login extends Registrerar {
 			],
 		) );
 
-		var_dump( $login_response['response'] );
+		var_dump( $login_response );
 
 		if ($login_response['response']['code'] != 200 ) return static::create_response( 'ورود شما ناموفق بود. لطفا نام کاربری و رمز عبور خود را  به صورت صحیح وارد کنید' , 403 );
 
