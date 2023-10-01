@@ -63,7 +63,7 @@ class Registrerar {
 			array(
 				array(
 					'methods'             => \WP_REST_Server::EDITABLE,
-					'callback'            => array( $this, 'login' ),
+					'callback'            => array( __CLASS__, 'login' ),
 					'permission_callback' => '__return_true',
 				),
 			)
@@ -75,18 +75,18 @@ class Registrerar {
 			array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'get_products' ),
-					'permission_callback' => array($this , 'permission_callback'),
+					'callback'            => array( __CLASS__, 'get_products' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
 				),
 				array(
 					'methods'             => \WP_REST_Server::EDITABLE,
-					'callback'            => array( $this, 'update_product' ),
-					'permission_callback' => array($this , 'permission_callback'),
+					'callback'            => array( __CLASS__, 'update_product' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
 				),
 				array(
 					'methods'             => \WP_REST_Server::DELETABLE,
-					'callback'            => array( $this, 'delete_product' ),
-					'permission_callback' => array($this , 'permission_callback'),
+					'callback'            => array( __CLASS__, 'delete_product' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
 				),
 			)
 		);
@@ -97,8 +97,8 @@ class Registrerar {
 			array(
 				array(
 					'methods'             => \WP_REST_Server::EDITABLE,
-					'callback'            => array( $this, 'add_company' ),
-					'permission_callback' => array($this , 'permission_callback'),
+					'callback'            => array( __CLASS__, 'update_company' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
 				),
 			)
 		);
@@ -166,7 +166,7 @@ class Registrerar {
 	 *
 	 * @since 1.0.0
 	 */
-	public function login( $request ) {
+	public static function login( $request ) {
 		return Login::authentication( $request );
 	}
 
@@ -175,7 +175,7 @@ class Registrerar {
 	 *
 	 * @since 1.0.0
 	 */
-	public function get_products( $request ) {
+	public static function get_products( $request ) {
 		return Products::get_all_products( $request );
 	}
 
@@ -184,7 +184,7 @@ class Registrerar {
 	 *
 	 * @since 1.0.0
 	 */
-	public function update_product( $request ) {
+	public static function update_product( $request ) {
 		return Products::update_single_product( $request );
 	}
 
@@ -193,7 +193,7 @@ class Registrerar {
 	 *
 	 * @since 1.0.0
 	 */
-	public function delete_product( $request ) {
+	public static function delete_product( $request ) {
 		return Products::delete_single_product( $request );
 	}
 
@@ -202,7 +202,7 @@ class Registrerar {
 	 *
 	 * @since 1.0.0
 	 */
-	public function add_company( $request ) {
-		return Settings::add_company( $request );
+	public static function update_company( $request ) {
+		return Settings::update_company( $request );
 	}
 }
