@@ -103,10 +103,22 @@ class Registrerar {
 			)
 		);
 
+		register_rest_route(
+			'MoadianAbzar/v1',
+			'checkExtraUserData',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'check_extra_user_data' ),
+					'permission_callback' => array($this , 'permission_callback'),
+				),
+			)
+		);
+
 	}
 
 	/**
-	 * Register routes.
+	 * permission callback.
 	 *
 	 * @since 1.0.0
 	 */
@@ -145,6 +157,11 @@ class Registrerar {
 			esc_html__( 'دسترسی شما به این بخش محدود شده است', 'text-domain' ),
 			array( 'status' => 203 )
 		);
+	}
+
+	public static  function check_user_id() {
+		$userId = get_current_user_id();
+        if (!$userId) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
 	}
 
 	/**
@@ -204,5 +221,14 @@ class Registrerar {
 	 */
 	public static function update_company( $request ) {
 		return Settings::update_company( $request );
+	}
+
+	/**
+	 * Add Company
+	 *
+	 * @since 1.0.0
+	 */
+	public function check_extra_user_data( $request ) {
+		return Users::check_extra_user_info( $request );
 	}
 }
