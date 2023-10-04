@@ -41,26 +41,28 @@ class Users extends Registrerar {
 	 */
 	public static function check_extra_user_info( $request ) {
         $params	= $request->get_params();
-		$type = $params['type'];
-		$email = $params['email'];
+		$type = sanitize_text_field($params['type']);
+		$data = sanitize_text_field($params['data']);
 
 		static::check_user_id();
 
 		if ( $type == 'email') {
+			$email = sanitize_email( $data );
 			$exists = email_exists( $email );
 			if ( $exists ) {
-				return static::create_response( 'این پست الکترونیک قبلا در سامانه ثبت شده است', 403 );
+				return static::create_response( 'پست الکترونیک قبلا در سامانه ثبت شده است', 403 );
 			}
 		}
 
 		if ( $type == 'mobile') {
-
-
+			$username = sanitize_user( $data );
+			$exists = username_exists( $username );
+			if ( $exists ) {
+				return static::create_response( 'شماره موبایل قبلا در سامانه ثبت شده است', 403 );
+			}
 		}
 
-
-
-		return static::create_response( 'شناسه محصول اضافه شد', 200 );
+		return static::create_response( 'کاربر با موفقیت اضافه شد', 200 );
 	}
 
 
