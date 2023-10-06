@@ -96,8 +96,18 @@ class Registrerar {
 			'settings',
 			array(
 				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_company' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+				array(
 					'methods'             => \WP_REST_Server::EDITABLE,
 					'callback'            => array( $this, 'update_company' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::DELETABLE,
+					'callback'            => array( $this, 'delete_company' ),
 					'permission_callback' => array( $this , 'permission_callback' ),
 				),
 			)
@@ -241,12 +251,30 @@ class Registrerar {
 	}
 
 	/**
-	 * Add Company
+	 * Get Company
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_company( $request ) {
+		return Settings::get_company( $request );
+	}
+
+	/**
+	 * update Company
 	 *
 	 * @since 1.0.0
 	 */
 	public static function update_company( $request ) {
 		return Settings::update_company( $request );
+	}
+
+	/**
+	 * Delete Company
+	 *
+	 * @since 1.0.0
+	 */
+	public static function delete_company( $request ) {
+		return Settings::delete_company( $request );
 	}
 
 	/**

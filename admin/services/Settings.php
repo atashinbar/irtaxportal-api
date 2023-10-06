@@ -17,32 +17,30 @@ class Settings extends Registrerar {
 	 * @since 1.0.0
 	 */
 	public static function update_company( $request ) {
-        $params			= $request->get_params();
-        $all_headers	= $request->get_headers();
+		$params			= $request->get_params();
 		$userId			= get_current_user_id();
 
-
-        if ( ! $userId ) {
+		if ( ! $userId ) {
 			return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
 		}
 
 		global $wpdb;
-        $tablename	= $wpdb->prefix . "MA_settings";
-        $row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
+		$tablename	= $wpdb->prefix . "MA_settings";
+		$row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
 
 
-        if ( ! is_array( $row ) ) {
-            $user_id		= $userId;
-            $settings[]		= $params;
-            $settings		= json_encode( $settings, JSON_UNESCAPED_UNICODE );
-            $sql			= $wpdb->prepare("INSERT INTO `$tablename` ( `user_id`, `settings` ) values (%d, %s)", $user_id, $settings);
-            $wpdb->query( $sql );
-        } else {
+		if ( ! is_array( $row ) ) {
+			$user_id		= $userId;
+			$settings[]		= $params;
+			$settings		= json_encode( $settings, JSON_UNESCAPED_UNICODE );
+			$sql			= $wpdb->prepare("INSERT INTO `$tablename` ( `user_id`, `settings` ) values (%d, %s)", $user_id, $settings);
+			$wpdb->query( $sql );
+		} else {
 			foreach ( $row as $key => $settings ) {
 
-                if ( $key === 'settings' ) {
+				if ( $key === 'settings' ) {
 
-                    $settings = json_decode( $settings, false, 512, JSON_UNESCAPED_UNICODE );
+					$settings = json_decode( $settings, false, 512, JSON_UNESCAPED_UNICODE );
 
 					foreach ( $settings as $key => $setting ) {
 
@@ -62,9 +60,9 @@ class Settings extends Registrerar {
 					$newValue	= json_decode( $newValue, false, 512, JSON_UNESCAPED_UNICODE );
 					$newValue	= json_encode( array_merge( $newValue, $settings), JSON_UNESCAPED_UNICODE );
 
-                    $update		= $wpdb->query( $wpdb->prepare( "UPDATE `$tablename` SET settings='$newValue' WHERE user_id= %d", $userId ) );
+					$update		= $wpdb->query( $wpdb->prepare( "UPDATE `$tablename` SET settings='$newValue' WHERE user_id= %d", $userId ) );
 
-                    if ( $update === 1 ) {
+					if ( $update === 1 ) {
 						$message = 'شرکت جدید با نام ';
 						$message .= $params['name'] . ' ';
 						$message .= ' و کداقتصادی یا شماره‌ملی ';
@@ -75,9 +73,9 @@ class Settings extends Registrerar {
 						return static::create_response( 'خطایی رخ داده است', 403 );
 					}
 
-                }
-            }
-        }
+				}
+			}
+		}
 
 
 		$message = 'شرکت جدید با نام ';
@@ -89,74 +87,71 @@ class Settings extends Registrerar {
 	}
 
 	/**
-	 * Update product.
-	 *
-	 * @since 1.0.0
-	 */
-	public static function update_single_product( $request ) {
-        $params	= $request->get_params();
-		$userId = get_current_user_id();
+	* Delete product.
+	*
+	* @since 1.0.0
+	*/
+	public static function delete_company( $request ) {
+		$params			= $request->get_params();
+		$userId			= get_current_user_id();
+		$cod_eqtesadi	= sanitize_text_field( $params['cod_eqtesadi'] );
 
-        if (!$userId) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
 
-        global $wpdb;
-        $tablename = $wpdb->prefix . "MA_settings";
-        $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", $userId), ARRAY_A);
+		if ( ! $userId ) {
+			return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
+		}
 
-        if (!is_array($row)) {
-            $user_id     = $userId;
-            $settings[] = $params;
-            $settings    = json_encode($settings,JSON_UNESCAPED_UNICODE);
-            $sql = $wpdb->prepare("INSERT INTO `$tablename` (`user_id`, `settings`) values (%d, %s)", $user_id, $settings);
-            $wpdb->query($sql);
-        } else {
-            foreach ($row as $key => $value) {
-                if ($key === 'settings'){
-                    $value = json_decode($value, false, 512, JSON_UNESCAPED_UNICODE);
-                    $value[] = $params;
-                    $newValue = json_encode($value,JSON_UNESCAPED_UNICODE);
-                    $update = $wpdb->query($wpdb->prepare("UPDATE `$tablename` SET settings='$newValue' WHERE user_id= %d", $userId));
-                    // $value = $params;
-                    if ( $update === 1 )
-                    return static::create_response( 'با موفقیت اپدیت شد', 200 );
-                    else
-                    return static::create_response( 'خطایی رخ داده است', 403 );
-                }
-            }
-        }
+		global $wpdb;
+		$tablename	= $wpdb->prefix . "MA_settings";
+		$row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
 
-		return static::create_response( 'با موفقیت اپدیت شد', 200 );
+		if ( is_array( $row ) ) {
+
+			$data = json_decode( $row['settings'] );
+			foreach ( $data as $key => $value ) {
+
+				if ( $value->cod_eqtesadi === $cod_eqtesadi ) {
+
+					unset( $data[$key] );
+
+					$newData	= json_encode( array_values( $data ), JSON_UNESCAPED_UNICODE );
+					$update		= $wpdb->query($wpdb->prepare("UPDATE `$tablename` SET settings='$newData' WHERE user_id= %d", $userId));
+
+					if ( $update === 1 ) {
+						return static::create_response( 'با موفقیت حذف شد', 200 );
+					} else {
+						return static::create_response( 'خطایی رخ داده است', 403 );
+					}
+
+				}
+			}
+		}
+		return static::create_response( 'اطلاعات خواسته شده یافت نشد', 403 );
 	}
 
 	/**
-	 * Delete product.
-	 *
-	 * @since 1.0.0
-	 */
-	public static function delete_single_product( $request ) {
-        $params	= $request->get_params();
-        $PId = $params[0];
-		$userId = get_current_user_id();
-        if (!$userId) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
+	* Delete product.
+	*
+	* @since 1.0.0
+	*/
+	public static function get_company( $request ) {
+		$params			= $request->get_params();
+		$userId			= get_current_user_id();
+		$cod_eqtesadi	= sanitize_text_field( $params['cod_eqtesadi'] );
 
-        global $wpdb;
-        $tablename = $wpdb->prefix . "MA_settings";
-        $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", $userId), ARRAY_A);
 
-        if (is_array($row)) {
-            $data = json_decode($row['settings']);
-            foreach ($data as $key => $value) {
-                if ((int)$value->id === $PId) {
-                    unset($data[$key]);
-                    $newData = json_encode(array_values($data),JSON_UNESCAPED_UNICODE);;
-                    $update = $wpdb->query($wpdb->prepare("UPDATE `$tablename` SET settings='$newData' WHERE user_id= %d", $userId));
-                    if ( $update === 1 )
-                    return static::create_response( 'با موفقیت اپدیت شد', 200 );
-                    else
-                    return static::create_response( 'خطایی رخ داده است', 403 );
-                }
-            }
+		if ( ! $userId ) {
+			return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
+		}
+
+		global $wpdb;
+		$tablename	= $wpdb->prefix . "MA_settings";
+		$row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
+
+		if ( ! is_array( $row ) ) {
+            return [];
         }
-        return static::create_response( 'اطلاعات خواسته شده یافت نشد', 403 );
+
+		return static::create_response( $row, 200 );
 	}
 }
