@@ -63,7 +63,7 @@ class Registrerar {
 			array(
 				array(
 					'methods'             => \WP_REST_Server::EDITABLE,
-					'callback'            => array( __CLASS__, 'login' ),
+					'callback'            => array( $this, 'login' ),
 					'permission_callback' => '__return_true',
 				),
 			)
@@ -75,17 +75,17 @@ class Registrerar {
 			array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
-					'callback'            => array( __CLASS__, 'get_products' ),
+					'callback'            => array( $this, 'get_products' ),
 					'permission_callback' => array( $this , 'permission_callback' ),
 				),
 				array(
 					'methods'             => \WP_REST_Server::EDITABLE,
-					'callback'            => array( __CLASS__, 'update_product' ),
+					'callback'            => array( $this, 'update_product' ),
 					'permission_callback' => array( $this , 'permission_callback' ),
 				),
 				array(
 					'methods'             => \WP_REST_Server::DELETABLE,
-					'callback'            => array( __CLASS__, 'delete_product' ),
+					'callback'            => array( $this, 'delete_product' ),
 					'permission_callback' => array( $this , 'permission_callback' ),
 				),
 			)
@@ -97,7 +97,7 @@ class Registrerar {
 			array(
 				array(
 					'methods'             => \WP_REST_Server::EDITABLE,
-					'callback'            => array( __CLASS__, 'update_company' ),
+					'callback'            => array( $this, 'update_company' ),
 					'permission_callback' => array( $this , 'permission_callback' ),
 				),
 			)
@@ -111,6 +111,23 @@ class Registrerar {
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'check_extra_user_data' ),
 					'permission_callback' => array($this , 'permission_callback'),
+				),
+			)
+		);
+
+		register_rest_route(
+			'MoadianAbzar/v1',
+			'extraUsers',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_extra_users' ),
+					'permission_callback' => array( $this , 'permission_callback'),
+				),
+				array(
+					'methods'             => \WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'update_extra_users' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
 				),
 			)
 		);
@@ -159,9 +176,18 @@ class Registrerar {
 		);
 	}
 
-	public static  function check_user_id() {
+	/**
+	 * check userId
+	 *
+	 * @since 1.0.0
+	 */
+	public static function check_user_id($type = null) {
 		$userId = get_current_user_id();
-        if (!$userId) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
+
+        if ($type == 'check' && !$userId) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
+		if ($type == 'get') return $userId;
+
+		return false;
 	}
 
 	/**
@@ -224,11 +250,29 @@ class Registrerar {
 	}
 
 	/**
-	 * Add Company
+	 * check extra user data
 	 *
 	 * @since 1.0.0
 	 */
 	public function check_extra_user_data( $request ) {
 		return Users::check_extra_user_info( $request );
+	}
+
+	/**
+	 * check extra user data
+	 *
+	 * @since 1.0.0
+	 */
+	public function get_extra_users( $request ) {
+		return Users::get_extraUsers( $request );
+	}
+
+	/**
+	 * check extra user data
+	 *
+	 * @since 1.0.0
+	 */
+	public function update_extra_users( $request ) {
+		return Users::update_extraUsers( $request );
 	}
 }

@@ -102,7 +102,7 @@ final class Manager {
 		$sql .= "CREATE TABLE $MA_users (
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
 		user_id INT NOT NULL,
-		users longtext NOT NULL,
+		extra_users longtext NOT NULL,
 		PRIMARY KEY  (id)
 		) $charset_collate;";
 
