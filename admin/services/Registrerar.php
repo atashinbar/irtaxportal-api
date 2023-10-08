@@ -142,6 +142,18 @@ class Registrerar {
 			)
 		);
 
+		register_rest_route(
+			'MoadianAbzar/v1',
+			'sendExtraUserCode',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'send_extra_user_code' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+			)
+		);
+
 	}
 
 	/**
@@ -302,5 +314,14 @@ class Registrerar {
 	 */
 	public function update_extra_users( $request ) {
 		return Users::update_extraUsers( $request );
+	}
+
+	/**
+	 * check extra user data
+	 *
+	 * @since 1.0.0
+	 */
+	public function send_extra_user_code( $request ) {
+		return Users::extraUserCode( $request );
 	}
 }

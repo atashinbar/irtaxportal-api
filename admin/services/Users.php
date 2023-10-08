@@ -144,7 +144,6 @@ class Users extends Registrerar {
 		return static::create_response( $error_message, 403 );
 	}
 
-
 	/**
 	 * Delete extra user.
 	 *
@@ -177,5 +176,30 @@ class Users extends Registrerar {
         return static::create_response( 'اطلاعات خواسته شده یافت نشد', 403 );
 	}
 
+	public static function extraUserCode( $request ) {
+		$params	= $request->get_params();
+		$mobile = sanitize_text_field($params['mobile']);
+		$email = sanitize_email($params['email']);
+
+		$error_message = [];
+		$exists = email_exists( $email );
+		if ( $exists ) {
+			$error_message[] = 'پست الکترونیک قبلا در سامانه ثبت شده است';
+		}
+
+		// check username
+		$exists = username_exists( $mobile );
+		if ( $exists ) {
+			$error_message[] = 'شماره موبایل قبلا در سامانه ثبت شده است';
+		}
+
+		if (count($error_message) > 0) return static::create_response($error_message, 403 );
+
+
+		$pin = General::generatePIN(4);
+		// $code = General::sendCode( $mobile , '8vty46fvg75vtie', $pin );
+
+		return static::create_response($pin, 200 );
+	}
 
 }
