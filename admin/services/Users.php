@@ -107,7 +107,14 @@ class Users extends Registrerar {
             $sql = $wpdb->prepare("INSERT INTO `$tablename` (`user_id`, `extra_users`) values (%d, %s)", $user_id, $extra_users);
             $result = $wpdb->query($sql);
 			if ( $result === 1 ) {
-				return static::create_response( 'کاربر با موفقیت اضافه شد', 200 );
+				$user = get_user_by('ID', $extra_user_id);
+				$userTemp['ID'] = $user->data->ID;
+				$userTemp['display_name'] = $user->data->display_name;
+				$userTemp['user_email'] = $user->data->user_email;
+				$userTemp['user_login'] = $user->data->user_login;
+				$userTemp['avatar'] = get_avatar_url($userTemp['user_email']);
+				$users[] = $userTemp;
+				return static::create_response( ['user'=>$users, 'message'=>'کاربر با موفقیت اضافه شد'] , 200 );
 			} else {
 				$delete_user = wp_delete_user($extra_user_id);
 				if ( !$delete_user ) {
@@ -126,9 +133,15 @@ class Users extends Registrerar {
                     $value[] = $extra_user_id;
                     $newValue = json_encode($value,JSON_UNESCAPED_UNICODE);
                     $update = $wpdb->query($wpdb->prepare("UPDATE `$tablename` SET extra_users='$newValue' WHERE user_id= %d", static::check_user_id('get')));
-                    // $value = $params;
                     if ( $update === 1 ){
-						return static::create_response( 'کاربر با موفقیت اضافه شد', 200 );
+						$user = get_user_by('ID', $extra_user_id);
+						$userTemp['ID'] = $user->data->ID;
+						$userTemp['display_name'] = $user->data->display_name;
+						$userTemp['user_email'] = $user->data->user_email;
+						$userTemp['user_login'] = $user->data->user_login;
+						$userTemp['avatar'] = get_avatar_url($userTemp['user_email']);
+						$users[] = $userTemp;
+						return static::create_response( ['user'=>$users, 'message'=>'کاربر با موفقیت اضافه شد'] , 200 );
 					} else {
 						$delete_user = wp_delete_user($extra_user_id);
 						if ( !$delete_user ) {
@@ -164,10 +177,16 @@ class Users extends Registrerar {
             foreach ($data as $key => $value) {
                 if ((int)$value === $extraUserId) {
                     unset($data[$key]);
-                    $newData = json_encode(array_values($data),JSON_UNESCAPED_UNICODE);;
-                    $update = $wpdb->query($wpdb->prepare("UPDATE `$tablename` SET extra_users='$newData' WHERE user_id= %d", static::check_user_id('get')));
-                    if ( $update === 1 )
-                    return static::create_response( 'با موفقیت اپدیت شد', 200 );
+                    $newData = json_encode(array_values($data),JSON_UNESCAPED_UNICODE);
+					if(count($data) === 0 ) {
+						$update = $wpdb->query($wpdb->prepare("DELETE FROM `$tablename` WHERE user_id= %d", static::check_user_id('get')));
+					} else {
+						$update = $wpdb->query($wpdb->prepare("UPDATE `$tablename` SET extra_users='$newData' WHERE user_id= %d", static::check_user_id('get')));
+					}
+                    if ( $update === 1 ) {
+						$delete_user = wp_delete_user($extraUserId);
+						return static::create_response( 'با موفقیت اپدیت شد', 200 );
+					}
                     else
                     return static::create_response( 'خطایی رخ داده است', 403 );
                 }
@@ -196,7 +215,7 @@ class Users extends Registrerar {
 		if (count($error_message) > 0) return static::create_response($error_message, 403 );
 
 
-		$pin = General::generatePIN(4);
+		$pin = General::generatePIN(6);
 		// $code = General::sendCodeMelliPayamak( $mobile , '165925', $pin );
 		$time = floor(microtime(true) * 1000);
 		$encoded_data = base64_encode(json_encode(['code'=> $pin,'time'=>$time]));

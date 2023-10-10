@@ -139,6 +139,11 @@ class Registrerar {
 					'callback'            => array( $this, 'update_extra_users' ),
 					'permission_callback' => array( $this , 'permission_callback' ),
 				),
+				array(
+					'methods'             => \WP_REST_Server::DELETABLE,
+					'callback'            => array( $this, 'delete_extra_users' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
 			)
 		);
 
@@ -323,5 +328,14 @@ class Registrerar {
 	 */
 	public function send_extra_user_code( $request ) {
 		return Users::extraUserCode( $request );
+	}
+
+	/**
+	 * delete extra user
+	 *
+	 * @since 1.0.0
+	 */
+	public static function delete_extra_users( $request ) {
+		return Users::delete_single_extra_user( $request );
 	}
 }
