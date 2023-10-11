@@ -48,12 +48,14 @@ class Login extends Registrerar {
 		$data = $response->data;
 		$user = $data->user;
 		$roles = $data->roles;
+		$mainUser = get_user_meta( $user->ID, 'MAMainUser', true );
 		$userInfo = [
 			'token' => $jwt,
 			'user' => [
 				'user_email' => $user->user_email,
 				'display_name' => $user->display_name,
-				'roles' => $roles
+				'roles' => $roles,
+				'main_user' => $mainUser,
 			]
 		];
 

@@ -88,9 +88,12 @@ class Users extends Registrerar {
 			'user_login' => $user_login,
 			'user_email' => $user_email,
 			'user_pass' => $user_pass,
+			'role' => 'ma_extra_user',
 		);
 
 		$extra_user_id = wp_insert_user( wp_slash( $user_data ) );
+
+		add_user_meta( $extra_user_id, 'MAMainUser', static::check_user_id('get'));
 
 		if ( is_wp_error( $extra_user_id ) ) {
 			return static::create_response( $error_message, 403 );
