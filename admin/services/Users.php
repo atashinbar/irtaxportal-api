@@ -219,14 +219,13 @@ class Users extends Registrerar {
 
 
 		$pin = General::generatePIN(6);
-		// $code = General::sendCodeMelliPayamak( $mobile , '165925', $pin );
+		$code = General::sendCodeMelliPayamak( $mobile , '165925', $pin );
 		$time = floor(microtime(true) * 1000);
 		$encoded_data = base64_encode(json_encode(['code'=> $pin,'time'=>$time]));
 
 
-		return static::create_response($encoded_data, 200 );
-		// if( $code->RetStatus === 1) return static::create_response(['code'=> $pin,'time'=>$time], 200 );
-		// else return static::create_response( 'متاسفانه کد ارسال نشد. دقایقی دیگر مجدد تلاش کنید.', 200 );
+		if( $code->RetStatus === 1) return static::create_response($encoded_data, 200 );
+		else return static::create_response( 'متاسفانه کد ارسال نشد. دقایقی دیگر مجدد تلاش کنید.', 200 );
 	}
 
 }
