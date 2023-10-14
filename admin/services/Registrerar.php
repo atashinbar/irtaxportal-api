@@ -218,6 +218,16 @@ class Registrerar {
 	}
 
 	/**
+	 * check MainUserId
+	 *
+	 * @since 1.0.0
+	 */
+	public static function check_main_user_id($userId = null) {
+		$mainUser = get_user_meta( $userId, 'MAMainUser', true );
+		return (isset($mainUser) && !empty($mainUser)) ? $mainUser : $userId;
+	}
+
+	/**
 	 * Create Response.
 	 *
 	 * @since 1.0.0

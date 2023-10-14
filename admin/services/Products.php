@@ -23,6 +23,8 @@ class Products extends Registrerar {
 
         if (!$userId) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
 
+		$userId = static::check_main_user_id($userId);
+
         global $wpdb;
         $tablename = $wpdb->prefix . "MA_products";
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", $userId), ARRAY_A);
@@ -44,6 +46,8 @@ class Products extends Registrerar {
 		$userId = get_current_user_id();
 
         if (!$userId) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
+
+		$userId = static::check_main_user_id($userId);
 
         global $wpdb;
         $tablename = $wpdb->prefix . "MA_products";
@@ -87,6 +91,8 @@ class Products extends Registrerar {
         $PId = $params[0];
 		$userId = get_current_user_id();
         if (!$userId) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
+
+		$userId = static::check_main_user_id($userId);
 
         global $wpdb;
         $tablename = $wpdb->prefix . "MA_products";

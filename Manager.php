@@ -50,6 +50,17 @@ final class Manager {
 	private function hooks() {
 		add_action( 'init', [ $this, 'load_plugin_textdomain'] );
 		add_filter( 'rest_url_prefix', [$this,'MAChangeAPIRoute']);
+		add_action( 'init', [$this,'add_roles_on_plugin_activation'] );
+	}
+
+
+	/**
+	 * Extra User Role
+	 *
+	 * @since 1.0.0
+	 */
+	function add_roles_on_plugin_activation() {
+		add_role( 'ma_extra_user', 'کاربر افزوده', array( 'read' => true, 'level_0' => true ) );
 	}
 
 	/**
