@@ -159,6 +159,28 @@ class Registrerar {
 			)
 		);
 
+		register_rest_route(
+			'MoadianAbzar/v1',
+			'customers',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_customer' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'update_customer' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::DELETABLE,
+					'callback'            => array( $this, 'delete_customer' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+			)
+		);
+
 	}
 
 	/**
@@ -302,6 +324,33 @@ class Registrerar {
 	 */
 	public static function delete_company( $request ) {
 		return Settings::delete_company( $request );
+	}
+
+	/**
+	 * Get Customer
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_customer( $request ) {
+		return Customers::get_customer( $request );
+	}
+
+	/**
+	 * update Customer
+	 *
+	 * @since 1.0.0
+	 */
+	public static function update_customer( $request ) {
+		return Customers::update_customer( $request );
+	}
+
+	/**
+	 * Delete Customer
+	 *
+	 * @since 1.0.0
+	 */
+	public static function delete_customer( $request ) {
+		return Customers::delete_customer( $request );
 	}
 
 	/**

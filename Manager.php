@@ -117,6 +117,14 @@ final class Manager {
 		PRIMARY KEY  (id)
 		) $charset_collate;";
 
+		$MA_customers = $wpdb->prefix . "MA_customers";
+		$sql .= "CREATE TABLE $MA_customers (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		user_id INT NOT NULL,
+		customers longtext NOT NULL,
+		PRIMARY KEY  (id)
+		) $charset_collate;";
+
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		dbDelta( $sql );
 	}
