@@ -19,11 +19,9 @@ class Products extends Registrerar {
 	public static function get_all_products($request) {
         $params	= $request->get_params();
 
-		$userId = get_current_user_id();
+		static::check_user_id('check');
 
-        if (!$userId) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
-
-		$userId = static::check_main_user_id($userId);
+		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
         global $wpdb;
         $tablename = $wpdb->prefix . "MA_products";
