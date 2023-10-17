@@ -14,7 +14,18 @@ class Login extends Registrerar {
 	private static $updateSettings = false;
 
 	/**
-	 * Get plugin settings.
+	 * logout
+	 *
+	 * @since 1.0.0
+	 */
+	public function logoutFromWP ( $request ){
+		static::check_user_id('check');
+		wp_logout();
+		wp_redirect('https://moadianabzar.ir');
+		exit;
+	}
+
+	/**
 	 *
 	 * @since 1.0.0
 	 */

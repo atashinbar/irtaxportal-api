@@ -101,11 +101,11 @@ final class Manager {
 		PRIMARY KEY  (id)
 		) $charset_collate;";
 
-		$MA_settings = $wpdb->prefix . "MA_settings";
-		$sql .= "CREATE TABLE $MA_settings (
+		$MA_companies = $wpdb->prefix . "MA_companies";
+		$sql .= "CREATE TABLE $MA_companies (
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
 		user_id INT NOT NULL,
-		settings longtext NOT NULL,
+		companies longtext NOT NULL,
 		PRIMARY KEY  (id)
 		) $charset_collate;";
 
@@ -122,6 +122,15 @@ final class Manager {
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
 		user_id INT NOT NULL,
 		customers longtext NOT NULL,
+		PRIMARY KEY  (id)
+		) $charset_collate;";
+
+		$MA_licenses = $wpdb->prefix . "MA_licenses";
+		$sql .= "CREATE TABLE $MA_licenses (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		license varchar(255) NOT NULL,
+		code_eghtesadi varchar(255) NOT NULL,
+		price_id varchar(255) NOT NULL,
 		PRIMARY KEY  (id)
 		) $charset_collate;";
 

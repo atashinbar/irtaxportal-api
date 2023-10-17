@@ -203,6 +203,8 @@ class Users extends Registrerar {
 		$mobile = sanitize_text_field($params['mobile']);
 		$email = sanitize_email($params['email']);
 
+		static::check_user_id('check');
+
 		$error_message = [];
 		$exists = email_exists( $email );
 		if ( $exists ) {
@@ -217,9 +219,12 @@ class Users extends Registrerar {
 
 		if (count($error_message) > 0) return static::create_response($error_message, 403 );
 
-
+		$userId = static::check_main_user_id(static::check_user_id('get'));
+		$user_info = get_userdata($userId);
+		$display_name = $user_info->display_name;
 		$pin = General::generatePIN(6);
-		$code = General::sendCodeMelliPayamak( $mobile , '165925', $pin );
+		$sendText = $display_name . ';' . $pin;
+		$code = General::sendCodeMelliPayamak( $mobile , '167680', $sendText );
 		$time = floor(microtime(true) * 1000);
 		$encoded_data = base64_encode(json_encode(['code'=> $pin,'time'=>$time]));
 

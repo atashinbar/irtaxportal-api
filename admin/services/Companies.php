@@ -1,6 +1,6 @@
 <?php
 /**
- * Settings route functionality
+ * Companies route functionality
  *
  * @since 1.0.0
  */
@@ -9,7 +9,7 @@ namespace MoadianAbzar\Admin\Services;
 
 defined( 'ABSPATH' ) || exit;
 
-class Settings extends Registrerar {
+class Companies extends Registrerar {
 
 	/**
 	 * Add Company.
@@ -25,15 +25,15 @@ class Settings extends Registrerar {
 		}
 
 		global $wpdb;
-		$tablename	= $wpdb->prefix . "MA_settings";
+		$tablename	= $wpdb->prefix . "MA_companies";
 		$row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
 
 
 		if ( ! is_array( $row ) ) {
 			$user_id		= $userId;
-			$settings[]		= $params;
-			$settings		= json_encode( $settings, JSON_UNESCAPED_UNICODE );
-			$sql			= $wpdb->prepare("INSERT INTO `$tablename` ( `user_id`, `settings` ) values (%d, %s)", $user_id, $settings);
+			$companies[]		= $params;
+			$companies		= json_encode( $companies, JSON_UNESCAPED_UNICODE );
+			$sql			= $wpdb->prepare("INSERT INTO `$tablename` ( `user_id`, `companies` ) values (%d, %s)", $user_id, $companies);
 			$wpdb->query( $sql );
 
 			$message = 'شرکت جدید با نام ';
@@ -44,42 +44,42 @@ class Settings extends Registrerar {
 			return static::create_response( $message, 200 );
 
 		} else {
-			foreach ( $row as $key => $settings ) {
+			foreach ( $row as $key => $companies ) {
 
-				if ( $key === 'settings' ) {
+				if ( $key === 'companies' ) {
 
-					$settings = json_decode( $settings, false, 512, JSON_UNESCAPED_UNICODE );
+					$companies = json_decode( $companies, false, 512, JSON_UNESCAPED_UNICODE );
 
-					foreach ( $settings as $key => $setting ) {
+					foreach ( $companies as $key => $company ) {
 
-						if ( $setting->cod_eqtesadi === $params['cod_eqtesadi'] && $setting->cod_yekta === $params['cod_yekta'] ) {
+						if ( $company->cod_eqtesadi === $params['cod_eqtesadi'] && $company->cod_yekta === $params['cod_yekta'] ) {
 
 							$message = 'در گذشته شرکتی توسط شما با این مشخصات ثبت شده است نام شرکت ';
-							$message .= $setting->name;
+							$message .= $company->name;
 							$message .= ' می باشد.';
 							return static::create_response( $message, 403 );
 
 						} else if (
-							$setting->cod_eqtesadi === $params['cod_eqtesadi'] &&
-							$setting->cod_yekta !== $params['cod_yekta'] &&
-							$setting->name !== $params['name'] &&
-							$setting->license !== $params['license'] &&
-							$setting->private_key !== $params['private_key']
+							$company->cod_eqtesadi === $params['cod_eqtesadi'] &&
+							$company->cod_yekta !== $params['cod_yekta'] &&
+							$company->name !== $params['name'] &&
+							$company->license !== $params['license'] &&
+							$company->private_key !== $params['private_key']
 						) {
 
-							$setting->cod_yekta = $params['cod_yekta'];
-							$setting->name = $params['name'];
-							$setting->license = $params['license'];
-							$setting->private_key = $params['private_key'];
+							$company->cod_yekta = $params['cod_yekta'];
+							$company->name = $params['name'];
+							$company->license = $params['license'];
+							$company->private_key = $params['private_key'];
 
 							break;
 
 						} else if (
-								$setting->cod_eqtesadi !== $params['cod_eqtesadi'] &&
-								$setting->cod_yekta !== $params['cod_yekta'] &&
-								$setting->name !== $params['name'] &&
-								$setting->license !== $params['license'] &&
-								$setting->private_key !== $params['private_key']
+								$company->cod_eqtesadi !== $params['cod_eqtesadi'] &&
+								$company->cod_yekta !== $params['cod_yekta'] &&
+								$company->name !== $params['name'] &&
+								$company->license !== $params['license'] &&
+								$company->private_key !== $params['private_key']
 						) {
 							$newValue	= json_encode( [$params], JSON_UNESCAPED_UNICODE );
 							$newValue	= json_decode( $newValue, false, 512, JSON_UNESCAPED_UNICODE );
@@ -90,12 +90,12 @@ class Settings extends Registrerar {
 					}
 
 					if ( isset( $newValue ) ) {
-						$newValue	= json_encode( array_merge( $newValue, $settings ), JSON_UNESCAPED_UNICODE );
+						$newValue	= json_encode( array_merge( $newValue, $companies ), JSON_UNESCAPED_UNICODE );
 					} else {
-						$newValue	= json_encode( $settings, JSON_UNESCAPED_UNICODE );
+						$newValue	= json_encode( $companies, JSON_UNESCAPED_UNICODE );
 					}
 
-					$update		= $wpdb->query( $wpdb->prepare( "UPDATE `$tablename` SET settings='$newValue' WHERE user_id= %d", $userId ) );
+					$update		= $wpdb->query( $wpdb->prepare( "UPDATE `$tablename` SET companies='$newValue' WHERE user_id= %d", $userId ) );
 
 					if ( $update === 1 ) {
 						$message = 'بروز رسانی با موفقیت انجام شد';
@@ -130,12 +130,12 @@ class Settings extends Registrerar {
 		}
 
 		global $wpdb;
-		$tablename	= $wpdb->prefix . "MA_settings";
+		$tablename	= $wpdb->prefix . "MA_companies";
 		$row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
 
 		if ( is_array( $row ) ) {
 
-			$data = json_decode( $row['settings'] );
+			$data = json_decode( $row['companies'] );
 			foreach ( $data as $key => $value ) {
 
 				if ( $value->cod_eqtesadi === $cod_eqtesadi ) {
@@ -143,7 +143,7 @@ class Settings extends Registrerar {
 					unset( $data[$key] );
 
 					$newData	= json_encode( array_values( $data ), JSON_UNESCAPED_UNICODE );
-					$update		= $wpdb->query($wpdb->prepare("UPDATE `$tablename` SET settings='$newData' WHERE user_id= %d", $userId));
+					$update		= $wpdb->query($wpdb->prepare("UPDATE `$tablename` SET companies='$newData' WHERE user_id= %d", $userId));
 
 					if ( $update === 1 ) {
 						return static::create_response( 'با موفقیت حذف شد', 200 );
@@ -172,11 +172,11 @@ class Settings extends Registrerar {
 		}
 
 		global $wpdb;
-		$tablename	= $wpdb->prefix . "MA_settings";
+		$tablename	= $wpdb->prefix . "MA_companies";
 		$row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
 
 		if ( ! is_array( $row ) ) {
-           return static::create_response( ['settings'=>'{}'], 200 );
+           return static::create_response( ['companies'=>'{}'], 200 );
         }
 
 		return static::create_response( $row, 200 );

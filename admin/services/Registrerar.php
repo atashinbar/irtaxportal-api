@@ -71,6 +71,18 @@ class Registrerar {
 
 		register_rest_route(
 			'MoadianAbzar/v1',
+			'logout',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'logout' ),
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
+
+		register_rest_route(
+			'MoadianAbzar/v1',
 			'products',
 			array(
 				array(
@@ -93,7 +105,7 @@ class Registrerar {
 
 		register_rest_route(
 			'MoadianAbzar/v1',
-			'settings',
+			'companies',
 			array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -272,6 +284,16 @@ class Registrerar {
 		return Login::authentication( $request );
 	}
 
+
+	/**
+	 * Authentication
+	 *
+	 * @since 1.0.0
+	 */
+	public static function logout( $request ) {
+		return Login::logoutFromWP( $request );
+	}
+
 	/**
 	 * get products
 	 *
@@ -305,7 +327,7 @@ class Registrerar {
 	 * @since 1.0.0
 	 */
 	public static function get_company( $request ) {
-		return Settings::get_company( $request );
+		return Companies::get_company( $request );
 	}
 
 	/**
@@ -314,7 +336,7 @@ class Registrerar {
 	 * @since 1.0.0
 	 */
 	public static function update_company( $request ) {
-		return Settings::update_company( $request );
+		return Companies::update_company( $request );
 	}
 
 	/**
@@ -323,7 +345,7 @@ class Registrerar {
 	 * @since 1.0.0
 	 */
 	public static function delete_company( $request ) {
-		return Settings::delete_company( $request );
+		return Companies::delete_company( $request );
 	}
 
 	/**
