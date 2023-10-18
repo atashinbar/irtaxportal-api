@@ -22,11 +22,13 @@ class Customers extends Registrerar {
 
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
-		$params['customer_type'] = sanitize_text_field( $params['customer_type'] );
-		$params['fullname']		 = sanitize_text_field( $params['fullname'] );
-		$params['cod_meli']		 = sanitize_text_field( $params['cod_meli'] );
-		$params['postal_code']	 = sanitize_text_field( $params['postal_code'] );
-		$params['cod_eqtesadi']	 = sanitize_text_field( $params['cod_eqtesadi'] );
+		$customer_id = time();
+		$params['customer_type']	= sanitize_text_field( $params['customer_type'] );
+		$params['fullname']			= sanitize_text_field( $params['fullname'] );
+		$params['cod_meli']			= sanitize_text_field( $params['cod_meli'] );
+		$params['postal_code']		= sanitize_text_field( $params['postal_code'] );
+		$params['cod_eqtesadi']		= sanitize_text_field( $params['cod_eqtesadi'] );
+		$params['customer_id']		= $customer_id;
 
 		global $wpdb;
 		$tablename	= $wpdb->prefix . "MA_customers";
@@ -35,7 +37,7 @@ class Customers extends Registrerar {
 
 		if ( ! is_array( $row ) ) {
 			$user_id		= $userId;
-			$customers[$params['cod_meli']]	= $params;
+			$customers[$customer_id]	= $params;
 			$customers		= json_encode( $customers, JSON_UNESCAPED_UNICODE );
 			$sql			= $wpdb->prepare("INSERT INTO `$tablename` ( `user_id`, `customers` ) values (%d, %s)", $user_id, $customers);
 			$wpdb->query( $sql );
@@ -53,7 +55,7 @@ class Customers extends Registrerar {
 
 				$customers = json_decode( $row['customers'], JSON_UNESCAPED_UNICODE );
 
-				$customers[$params['cod_meli']] = $params;
+				$customers[$customer_id] = $params;
 				$customers	 = json_encode( $customers, JSON_UNESCAPED_UNICODE );
 				$update		 = $wpdb->query( $wpdb->prepare( "UPDATE `$tablename` SET customers='$customers' WHERE user_id= %d", $userId ) );
 
@@ -79,7 +81,7 @@ class Customers extends Registrerar {
 	*/
 	public static function delete_customer( $request ) {
 		$params			= $request->get_params();
-		$cod_meli	= sanitize_text_field( $params['cod_meli'] );
+		$customer_id	= (int)sanitize_text_field( $params['customer_id'] );
 
 		static::check_user_id('check');
 
@@ -94,12 +96,17 @@ class Customers extends Registrerar {
 			$data = json_decode( $row['customers'], JSON_UNESCAPED_UNICODE );
 
 			foreach ( $data as $key => $value ) {
-				if ( $key === $cod_meli ) {
 
-					unset( $data[$key] );
+				if ( $key === $customer_id ) {
 
-					$newData	= json_encode( array_values( $data ), JSON_UNESCAPED_UNICODE );
-					$update		= $wpdb->query( $wpdb->prepare( "UPDATE `$tablename` SET customers='$newData' WHERE user_id= %d", $userId ) );
+					unset( $data[$customer_id] );
+
+					if ( empty( $data ) ) {
+						$update = $wpdb->query($wpdb->prepare("DELETE FROM `$tablename` WHERE user_id= %d", static::check_user_id( 'get' ) ) );
+					} else {
+						$newData	= json_encode( $data, JSON_UNESCAPED_UNICODE );
+						$update		= $wpdb->query( $wpdb->prepare( "UPDATE `$tablename` SET customers='$newData' WHERE user_id= %d", $userId ) );
+					}
 
 					if ( $update === 1 ) {
 						return static::create_response( 'با موفقیت حذف شد', 200 );
