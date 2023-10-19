@@ -22,13 +22,12 @@ class Customers extends Registrerar {
 
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
-		$customer_id = time();
 		$params['customer_type']	= sanitize_text_field( $params['customer_type'] );
 		$params['fullname']			= sanitize_text_field( $params['fullname'] );
 		$params['cod_meli']			= sanitize_text_field( $params['cod_meli'] );
 		$params['postal_code']		= sanitize_text_field( $params['postal_code'] );
 		$params['cod_eqtesadi']		= sanitize_text_field( $params['cod_eqtesadi'] );
-		$params['customer_id']		= $customer_id;
+		$params['customer_id']		= isset( $params['customer_id'] ) ? $params['customer_id'] : time();
 
 		global $wpdb;
 		$tablename	= $wpdb->prefix . "MA_customers";
@@ -37,7 +36,7 @@ class Customers extends Registrerar {
 
 		if ( ! is_array( $row ) ) {
 			$user_id		= $userId;
-			$customers[$customer_id]	= $params;
+			$customers[$params['customer_id']]	= $params;
 			$customers		= json_encode( $customers, JSON_UNESCAPED_UNICODE );
 			$sql			= $wpdb->prepare("INSERT INTO `$tablename` ( `user_id`, `customers` ) values (%d, %s)", $user_id, $customers);
 			$wpdb->query( $sql );
@@ -55,7 +54,7 @@ class Customers extends Registrerar {
 
 				$customers = json_decode( $row['customers'], JSON_UNESCAPED_UNICODE );
 
-				$customers[$customer_id] = $params;
+				$customers[$params['customer_id']] = $params;
 				$customers	 = json_encode( $customers, JSON_UNESCAPED_UNICODE );
 				$update		 = $wpdb->query( $wpdb->prepare( "UPDATE `$tablename` SET customers='$customers' WHERE user_id= %d", $userId ) );
 
