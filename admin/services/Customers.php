@@ -41,12 +41,7 @@ class Customers extends Registrerar {
 			$sql			= $wpdb->prepare("INSERT INTO `$tablename` ( `user_id`, `customers` ) values (%d, %s)", $user_id, $customers);
 			$wpdb->query( $sql );
 
-			$message = 'مشتری جدید با نام ';
-			$message .= $params['fullname'] . ' ';
-			$message .= ' و کداقتصادی یا شماره‌ملی ';
-			$message .= $params['cod_meli'];
-			$message .= ' اضافه شد.';
-			return static::create_response( $message, 200 );
+			return static::create_response( 'بروزرسانی باموفقیت انجام شد', 200 );
 
 		} else {
 
@@ -59,8 +54,7 @@ class Customers extends Registrerar {
 				$update		 = $wpdb->query( $wpdb->prepare( "UPDATE `$tablename` SET customers='$customers' WHERE user_id= %d", $userId ) );
 
 				if ( $update === 1 ) {
-					$message = $params['fullname'] . ' باکدملی ' . $params['cod_meli'] . ' با موفقیت اضافه شد';
-					return static::create_response( $message, 200 );
+					return static::create_response( 'بروزرسانی باموفقیت انجام شد', 200 );
 				} else {
 					return static::create_response( 'خطایی رخ داده است', 403 );
 				}

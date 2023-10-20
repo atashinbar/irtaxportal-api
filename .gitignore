@@ -1,0 +1,33 @@
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.history/
+
+# Sass
+.sass-cache/
+
+# Environment files
+yarn-error.log
+
+# Built packages
+build/
+public/dist
+
+# Project files
+node_modules/
+
+# Node Package Dependencies
+package-lock.json
+
+# Composer
+/vendor/
+
+# Yarn
+yarn.lock
+
+wpcs
+
+composer.lock

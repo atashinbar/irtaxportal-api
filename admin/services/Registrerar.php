@@ -193,6 +193,18 @@ class Registrerar {
 			)
 		);
 
+		register_rest_route(
+			'MoadianAbzar/v1',
+			'licenses',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_licenses' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+			)
+		);
+
 	}
 
 	/**
@@ -249,6 +261,16 @@ class Registrerar {
 		if ($type == 'get') return $userId;
 
 		return false;
+	}
+
+	/**
+	 * Get user
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_user( $id ) {
+		static::check_user_id( 'check' );
+		return get_user_by( 'id', $id );
 	}
 
 	/**
@@ -418,5 +440,14 @@ class Registrerar {
 	 */
 	public static function delete_extra_users( $request ) {
 		return Users::delete_single_extra_user( $request );
+	}
+
+	/**
+	 * Get user licenses
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_licenses( $request ) {
+		return Licenses::get_licenses( $request );
 	}
 }
