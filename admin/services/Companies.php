@@ -61,9 +61,9 @@ class Companies extends Registrerar {
 		$params['name']			= sanitize_text_field( $params['name'] );
 		$params['license']		= sanitize_text_field( $params['license'] );
 		$params['private_key']	= sanitize_text_field( $params['private_key'] );
-		$params['company_id']	= isset( $params['company_id'] ) ? $params['company_id'] : time();
+		$params['company_id']	= isset( $params['company_id'] ) ? sanitize_text_field( $params['company_id'] ) : time();
 
-		$mode = static::check_mode($params['cod_eqtesadi']);
+		$mode = static::check_mode( $params['cod_eqtesadi'] );
 		global $wpdb;
 
 		if ( $mode === 1 ) { //add mode
