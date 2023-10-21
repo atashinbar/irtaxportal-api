@@ -16,14 +16,14 @@ class Licenses extends Registrerar {
 	 *
 	 * @since  1.0.0
 	 */
-	public static $key = 'cca946cefc899e03c435ea3a1efa163a';
+	public static $key = '1f170ade5b6f7271365f484c497108a9';
 
 	/**
 	 * EDD API Keys Token.
 	 *
 	 * @since  1.0.0
 	 */
-	public static $token = '3cc70411acbcf15044c6775a2b6c1edb';
+	public static $token = '978f0bee678b8798cbebcd4dbe6bc782';
 
 	/**
 	* Get licenses.
