@@ -37,7 +37,6 @@ class Licenses extends Registrerar {
 
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 		$params['email'] = sanitize_email( $params['email'] );
-		return static::create_response($params['email'], 403 );
 
 		$response = wp_remote_post( home_url( '/edd-api/sales/' ), array(
 			'body'	=> [
@@ -46,6 +45,8 @@ class Licenses extends Registrerar {
 				'email'	=> $params['email'],
 			],
 		) );
+
+		return static::create_response($response , 403 );
 
 		if ( $response['response']['code'] !== 200 ) {
 			return static::create_response( 'خطایی رخ داده است', $response['response']['code'] );
