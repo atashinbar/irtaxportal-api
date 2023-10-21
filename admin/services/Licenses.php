@@ -46,7 +46,6 @@ class Licenses extends Registrerar {
 			],
 		) );
 
-		return static::create_response($response , 403 );
 
 		if ( $response['response']['code'] !== 200 ) {
 			return static::create_response( 'خطایی رخ داده است', $response['response']['code'] );
