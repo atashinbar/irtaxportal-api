@@ -27,7 +27,7 @@ class Customers extends Registrerar {
 		$params['cod_meli']			= sanitize_text_field( $params['cod_meli'] );
 		$params['postal_code']		= sanitize_text_field( $params['postal_code'] );
 		$params['cod_eqtesadi']		= sanitize_text_field( $params['cod_eqtesadi'] );
-		$params['customer_id']		= isset( $params['customer_id'] ) ? $params['customer_id'] : time();
+		$params['customer_id']		= isset( $params['customer_id'] ) ? sanitize_text_field( $params['customer_id'] ) : time();
 
 		global $wpdb;
 		$tablename	= $wpdb->prefix . "MA_customers";
