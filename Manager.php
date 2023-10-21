@@ -48,6 +48,7 @@ final class Manager {
 	 * @since 1.0.0
 	 */
 	private function hooks() {
+		add_filter('https_ssl_verify', '__return_false');
 		add_action( 'init', [ $this, 'load_plugin_textdomain'] );
 		add_filter( 'rest_url_prefix', [$this,'MAChangeAPIRoute']);
 		add_action( 'init', [$this,'add_roles_on_plugin_activation'] );

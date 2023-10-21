@@ -12,6 +12,40 @@ defined( 'ABSPATH' ) || exit;
 class Companies extends Registrerar {
 
 	/**
+	 * check mode
+	 *
+	 * @since 1.0.0
+	 */
+	public static function check_mode($code_eghtesadi) {
+		global $wpdb;
+		$tablename	= $wpdb->prefix . "MA_licenses";
+		$row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE code_eghtesadi = %d", $code_eghtesadi ), ARRAY_A );
+		if ( ! is_array( $row ) ) {
+			$mode = 1; //add new
+		} else {
+			$mode = 2; // edit
+		}
+		return $mode;
+	}
+
+	/**
+	 * check mode
+	 *
+	 * @since 1.0.0
+	 */
+	public static function license_is_valid($license) {
+		$response = wp_remote_post( home_url( '/' ), array(
+			'body'	=> [
+				'edd_action'	=> 'check_license',
+				'item_id'		=> '636',
+				'license'		=> $license,
+			],
+		) );
+
+		$response = json_decode( $response['body'], JSON_UNESCAPED_UNICODE );
+		return ($response['success'] && $response['activations_left'] > 0) ? true : false;
+	}
+	/**
 	 * Add/Update Company.
 	 *
 	 * @since 1.0.0
@@ -29,115 +63,85 @@ class Companies extends Registrerar {
 		$params['private_key']	= sanitize_text_field( $params['private_key'] );
 		$params['company_id']	= isset( $params['company_id'] ) ? $params['company_id'] : time();
 
+		$mode = static::check_mode($params['cod_eqtesadi']);
 		global $wpdb;
-		$tablename	= $wpdb->prefix . "MA_companies";
-		$row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
 
-		if ( ! is_array( $row ) ) {
-			$user_id		= $userId;
-			$companies[$params['company_id']]	= $params;
-			$companies		= json_encode( $companies, JSON_UNESCAPED_UNICODE );
+		if ( $mode === 1 ) { //add mode
+			//check license is valid
+			if ( !static::license_is_valid($params['license']) ) return static::create_response( 'استفاده از این لایسنس مجاز نیست. لطفا لایسنس دیگری انتخاب کنید', 403 );
 
-			$response = wp_remote_post( home_url( '/' ), array(
-				'body'	=> [
-					'edd_action'	=> 'activate_license',
-					'item_id'		=> '636',
-					'license'		=> $params['license'],
-					'url'			=> $params['cod_eqtesadi'],
-				],
-			) );
+			$MA_companies_table	= $wpdb->prefix . "MA_companies";
+			$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$MA_companies_table` WHERE user_id = %d", $userId ), ARRAY_A );
 
-			$response = json_decode( $response['body'], JSON_UNESCAPED_UNICODE );
-
-			if ( $response['success'] ) {
-
-				$update		 = $wpdb->query( $wpdb->prepare("INSERT INTO `$tablename` ( `user_id`, `companies` ) values (%d, %s)", $user_id, $companies) );
-				if ( $update === 1 ) {
-
-					$edd_licenses	= $wpdb->prefix . "edd_licenses";
-					$get_license	= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$edd_licenses` WHERE license_key = %d", $params['license'] ), ARRAY_A );
-					if ( is_array( $get_license ) ) {
-
-						$MA_licenses	= $wpdb->prefix . "MA_licenses";
-						$add_license	= $wpdb->query(
-							$wpdb->prepare(
-								"INSERT INTO `$MA_licenses` ( `license`, `code_eghtesadi`, `price_id` ) values (%s, %s, %d)",
-								$get_license['license_key'], $params['cod_eqtesadi'], $get_license['price_id']
-							)
-						);
-						if ( $add_license === 1 ) {
-							return static::create_response( 'بروزرسانی باموفقیت انجام شد', 200 );
-						} else {
-							return static::create_response( 'در هنگام ثبت لایسنس خطایی رخ داده است با پشتیبانی تماس بگیرید', 403 );
-						}
-					}
-
-					return static::create_response( 'لایسنس یافت نشد', 404 );
-
-				} else {
-					return static::create_response( 'خطایی رخ داده است', 403 );
-				}
-
-			} else if ( ! $response['success'] && isset( $response['error'] ) ) {
-				$message = static::edd_error( $response['error'] );
-				return static::create_response( $message, 403 );
+			if ( ! is_array( $row ) ) {
+				$companies[$params['company_id']]	= $params;
+				$companies		= json_encode( $companies, JSON_UNESCAPED_UNICODE );
+				$add_to_MA_companies	 = $wpdb->query( $wpdb->prepare("INSERT INTO `$MA_companies_table` ( `user_id`, `companies` ) values (%d, %s)", $userId, $companies) );
 			} else {
-				return static::create_response( 'خطایی رخ داده است سیستم قادر به فعال سازی لایسنس نیست لطفا دقایقی بعد تلاش کنید. درصورت تداوم این مشکل لطفا از این خطا اسکرین شات گرفته و برای تیم پشتیبانی ارسال فرمایید', $response['response']['code'] );
-			}
-
-		} else {
-
-			if ( isset( $row['companies'] ) ) {
-
 				$companies = json_decode( $row['companies'], JSON_UNESCAPED_UNICODE );
-
 				$companies[$params['company_id']] = $params;
 				$companies	 = json_encode( $companies, JSON_UNESCAPED_UNICODE );
+				$add_to_MA_companies = $wpdb->query($wpdb->prepare("UPDATE `$MA_companies_table` SET companies='$companies' WHERE user_id= %d", $userId));
+			}
 
-				$response = wp_remote_post( home_url( '/' ), array(
-					'body'	=> [
-						'edd_action'	=> 'activate_license',
-						'item_id'		=> '636',
-						'license'		=> $params['license'],
-						'url'			=> $params['cod_eqtesadi'],
-					],
-				) );
-				$response = json_decode( $response['body'], JSON_UNESCAPED_UNICODE );
 
-				if ( $response['success'] ) {
-					$update		 = $wpdb->query( $wpdb->prepare( "UPDATE `$tablename` SET companies='$companies' WHERE user_id= %d", $userId ) );
-					if ( $update === 1 ) {
 
-						$edd_licenses	= $wpdb->prefix . "edd_licenses";
-						$get_license	= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$edd_licenses` WHERE license_key = %d", $params['license'] ), ARRAY_A );
-						if ( is_array( $get_license ) ) {
+			if ( $add_to_MA_companies === 1 ) {
+				$MA_licenses_table	= $wpdb->prefix . "MA_licenses";
+				$add_to_MA_licenses	= $wpdb->query(
+					$wpdb->prepare(
+						"INSERT INTO `$MA_licenses_table` ( `license`, `code_eghtesadi`, `price_id` ) values (%s, %s, %d)",
+						$params['license'], $params['cod_eqtesadi'], ''
+					)
+				);
+				if ( $add_to_MA_licenses === 1 ) {
+					$response = wp_remote_post( home_url( '/' ), array(
+						'body'	=> [
+							'edd_action'	=> 'activate_license',
+							'item_id'		=> '636',
+							'license'		=> $params['license'],
+							'url'			=> $params['cod_eqtesadi'],
+						],
+					) );
 
-							$MA_licenses	= $wpdb->prefix . "MA_licenses";
-							$add_license	= $wpdb->query(
-								$wpdb->prepare(
-									"INSERT INTO `$MA_licenses` ( `license`, `code_eghtesadi`, `price_id` ) values (%s, %s, %d)",
-									$get_license['license_key'], $params['cod_eqtesadi'], $get_license['price_id']
-								)
-							);
-							if ( $add_license === 1 ) {
-								return static::create_response( 'بروزرسانی باموفقیت انجام شد', 200 );
-							} else {
-								return static::create_response( 'در هنگام ثبت لایسنس خطایی رخ داده است با پشتیبانی تماس بگیرید', 403 );
-							}
-						}
-
-						return static::create_response( 'لایسنس یافت نشد', 404 );
-
+					$response = json_decode( $response['body'], JSON_UNESCAPED_UNICODE );
+					if ( $response['success'] ) {
+						return static::create_response( 'فروشنده / شرکت با موفقیت افزوده شد', 200 );
+					} elseif ( ! $response['success'] && isset( $response['error'] ) ) {
+						$remove_row = $wpdb->query($wpdb->prepare("DELETE FROM `$MA_companies_table` WHERE user_id= %d", $userId));
+						$remove_row2 = $wpdb->query($wpdb->prepare("DELETE FROM `$MA_licenses_table` WHERE code_eghtesadi= %d", $params['cod_eqtesadi']));
+						$message = static::edd_error( $response['error'] );
+						return static::create_response( $message, 403 );
 					} else {
-						return static::create_response( 'خطایی رخ داده است', 403 );
+						$remove_row = $wpdb->query($wpdb->prepare("DELETE FROM `$MA_companies_table` WHERE user_id= %d", $userId));
+						$remove_row2 = $wpdb->query($wpdb->prepare("DELETE FROM `$MA_licenses_table` WHERE code_eghtesadi= %d", $params['cod_eqtesadi']));
+						return static::create_response( 'خطایی رخ داده است سیستم قادر به فعال سازی لایسنس نیست لطفا دقایقی بعد تلاش کنید. درصورت تداوم این مشکل لطفا از این خطا اسکرین شات گرفته و برای تیم پشتیبانی ارسال فرمایید', $response['response']['code'] );
 					}
-				} else if ( ! $response['success'] && isset( $response['error'] ) ) {
-					$message = static::edd_error( $response['error'] );
-					return static::create_response( $message, 403 );
 				} else {
-					return static::create_response( 'خطایی رخ داده است سیستم قادر به فعال سازی لایسنس نیست لطفا دقایقی بعد تلاش کنید. درصورت تداوم این مشکل لطفا از این خطا اسکرین شات گرفته و برای تیم پشتیبانی ارسال فرمایید', $response['response']['code'] );
+					$remove_row = $wpdb->query($wpdb->prepare("DELETE FROM `$MA_companies_table` WHERE user_id= %d", $userId));
+					return static::create_response( 'خطایی رخ داده است', 403 );
 				}
+			} else {
+				return static::create_response( 'خطایی رخ داده است', 403 );
+			}
+		} else if( $mode === 2) {
+			$tablename	= $wpdb->prefix . "MA_licenses";
+			$MA_licenses_row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE code_eghtesadi = %d", $params['cod_eqtesadi'] ), ARRAY_A );
+			if ( $MA_licenses_row['license'] !=  $params['license'] ) return static::create_response( 'کد اقتصادی بر روی لایسنس دیگری فعال شده است. لطفا لایسنس درست را انتخاب کنید', 403 );
 
+			$MA_companies_table	= $wpdb->prefix . "MA_companies";
+			$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$MA_companies_table` WHERE user_id = %d", $userId ), ARRAY_A );
+
+			$companies = json_decode( $row['companies'], JSON_UNESCAPED_UNICODE );
+			$companies[$params['company_id']] = $params;
+			$companies	 = json_encode( $companies, JSON_UNESCAPED_UNICODE );
+
+			$update_MA_companies = $wpdb->query($wpdb->prepare("UPDATE `$MA_companies_table` SET companies='$companies' WHERE user_id= %d", $userId));
+
+			if ( $update_MA_companies === 1 ) {
+				return static::create_response( 'فروشنده / شرکت با موفقیت بروزرسانی شد', 200 );
+			} else {
+				return static::create_response( 'خطایی رخ داده است', 403 );
 			}
 		}
 

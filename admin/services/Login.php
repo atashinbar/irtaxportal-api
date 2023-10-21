@@ -21,7 +21,7 @@ class Login extends Registrerar {
 	public function logoutFromWP ( $request ){
 		static::check_user_id('check');
 		wp_logout();
-		wp_redirect('https://moadianabzar.ir');
+		wp_redirect(home_url('/'));
 		exit;
 	}
 

@@ -58,9 +58,18 @@ class Licenses extends Registrerar {
 		if ( isset( $response->sales ) ) {
 			foreach ( $response->sales as $key => $item ) {
 				foreach ( $item->licenses as $license ) {
-					$licenses[$license->key] = array(
+					$response = wp_remote_post( home_url( '/' ), array(
+						'body'	=> [
+							'edd_action'	=> 'check_license',
+							'item_id'		=> '636',
+							'license'		=> $license->key,
+						],
+					) );
+
+					$response = json_decode( $response['body'], JSON_UNESCAPED_UNICODE );
+					$licenses[] = array(
 						'name' => $license->name,
-						'status' => $license->status,
+						'allowed' => $response['activations_left'] > 0 ? 1 : 0,
 						'key' => $license->key,
 					);
 				}
