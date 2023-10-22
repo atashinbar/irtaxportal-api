@@ -56,42 +56,28 @@ class Licenses extends Registrerar {
 		$licenses = array();
 
 		if ( isset( $response->sales ) ) {
-			if ( $params['type'] == 'list') {
-				foreach ( $response->sales as $key => $item ) {
-					foreach ( $item->licenses as $license ) {
-						$response = wp_remote_post( home_url( '/' ), array(
-							'body'	=> [
-								'edd_action'	=> 'check_license',
-								'item_id'		=> '636',
-								'license'		=> $license->key,
-							],
-						) );
+			foreach ( $response->sales as $key => $item ) {
+				foreach ( $item->licenses as $license ) {
+					$response = wp_remote_post( home_url( '/' ), array(
+						'body'	=> [
+							'edd_action'	=> 'check_license',
+							'item_id'		=> '636',
+							'license'		=> $license->key,
+						],
+					) );
 
-						$response = json_decode( $response['body'], JSON_UNESCAPED_UNICODE );
+					$response = json_decode( $response['body'], JSON_UNESCAPED_UNICODE );
+					if ( $params['type'] == 'list') {
 						$licenses[] = array(
 							'id'=>$item->ID,
-							'date'=>$item->date
-							,
+							'date'=>$item->date,
 							'expire' => str_replace('+00:00', 'Z', gmdate('c', strtotime($response['expires']))),
 							'total'=>(int)$item->subtotal,
 							'name' => $license->name,
 							'status' => $response['activations_left'] > 0 ? 'قابل استفاده': 'سقف مجاز پر شده است',
 							'key' => $license->key,
 						);
-					}
-				}
-			} else {
-				foreach ( $response->sales as $key => $item ) {
-					foreach ( $item->licenses as $license ) {
-						$response = wp_remote_post( home_url( '/' ), array(
-							'body'	=> [
-								'edd_action'	=> 'check_license',
-								'item_id'		=> '636',
-								'license'		=> $license->key,
-							],
-						) );
-
-						$response = json_decode( $response['body'], JSON_UNESCAPED_UNICODE );
+					} else {
 						$licenses[] = array(
 							'name' => $license->name,
 							'allowed' => $response['activations_left'] > 0 ? 1 : 0,
