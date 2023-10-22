@@ -71,33 +71,57 @@ class Users extends Registrerar {
 
 		// Check email
 		$error_message = [];
-		$exists = email_exists( $user_email );
-		if ( $exists ) {
-			$error_message[] = 'پست الکترونیک قبلا در سامانه ثبت شده است';
-		}
+		$continue = true;
+		$user = '';
+		$mobile_exist = username_exists( $user_login );
+		$email_exist = email_exists( $user_email );
 
 		// check username
-		$exists = username_exists( $user_login );
-		if ( $exists ) {
-			$error_message[] = 'شماره موبایل قبلا در سامانه ثبت شده است';
+		if ( $mobile_exist ) {
+			$user = get_user_by('login', $user_login);
+
+			if (!in_array('ma_extra_user', $user->roles)){
+				$error_message[] = 'شما اجازه افزودن این شخص به عنوان همکار را ندارید. لطفا با یک شماره موبایل دیگر تلاش کنید';
+			}else if ( $user->user_email != $user_email ){
+				$error_message[] = 'کاربر با این شماره موبایل در سامانه وجود دارد اما پست الکترونیک ایشان به درستی وارد نشده است.';
+				$continue = false;
+			}
 		}
 
-		$user_data = array(
-			'first_name' => $first_name,
-			'last_name' => $last_name,
-			'user_login' => $user_login,
-			'user_email' => $user_email,
-			'user_pass' => $user_pass,
-			'role' => 'ma_extra_user',
-		);
+		// check email
+		if ( !$mobile_exist && $email_exist ) {
+			$user = get_user_by('email', $user_email);
 
-		$extra_user_id = wp_insert_user( wp_slash( $user_data ) );
+			if (!in_array('ma_extra_user', $user->roles)){
+				$error_message[] = 'شما اجازه افزودن این شخص به عنوان همکار را ندارید. لطفا با یک شماره موبایل دیگر تلاش کنید';
+			}else if ( $user->user_login != $user_login ){
+				$error_message[] = 'کاربر با این پست الکترونیک در سامانه وجود دارد اما شماره موبایل ایشان به درستی وارد نشده است.';
+				$continue = false;
+			}
+		}
+
+
+		if (!$continue) return static::create_response( $error_message, 403 );
+
+		if ( !$mobile_exist && !$email_exist  ) {
+			$user_data = array(
+				'first_name' => $first_name,
+				'last_name' => $last_name,
+				'user_login' => $user_login,
+				'user_email' => $user_email,
+				'user_pass' => $user_pass,
+				'role' => 'ma_extra_user',
+			);
+
+			$extra_user_id = wp_insert_user( wp_slash( $user_data ) );
+			if ( is_wp_error( $extra_user_id ) ) {
+				return static::create_response( 'افزودن کاربر با مشکل مواجه شد. لطفا دقایقی دیگر مجدد تلاش کنید', 403 );
+			}
+		} else {
+			$extra_user_id = $user->ID;
+		}
 
 		add_user_meta( $extra_user_id, 'MAMainUser', static::check_user_id('get'));
-
-		if ( is_wp_error( $extra_user_id ) ) {
-			return static::create_response( $error_message, 403 );
-		}
 
         global $wpdb;
         $tablename = $wpdb->prefix . "MA_users";
@@ -187,7 +211,6 @@ class Users extends Registrerar {
 						$update = $wpdb->query($wpdb->prepare("UPDATE `$tablename` SET extra_users='$newData' WHERE user_id= %d", static::check_user_id('get')));
 					}
                     if ( $update === 1 ) {
-						$delete_user = wp_delete_user($extraUserId);
 						return static::create_response( 'با موفقیت اپدیت شد', 200 );
 					}
                     else
@@ -206,15 +229,28 @@ class Users extends Registrerar {
 		static::check_user_id('check');
 
 		$error_message = [];
-		$exists = email_exists( $email );
-		if ( $exists ) {
-			$error_message[] = 'پست الکترونیک قبلا در سامانه ثبت شده است';
+		$mobile_exist = username_exists( $mobile );
+		$email_exist = email_exists( $email );
+
+		if ( $mobile_exist ) {
+			$user = get_user_by('login', $mobile);
+
+			if (!in_array('ma_extra_user', $user->roles)){
+				$error_message[] = 'شما اجازه افزودن این شخص به عنوان همکار را ندارید. لطفا با یک شماره موبایل دیگر تلاش کنید';
+			} else if ($user->user_email != $email) {
+				$error_message[] = 'کاربر با این شماره موبایل در سامانه وجود دارد اما پست الکترونیک ایشان به درستی وارد نشده است';
+			}
 		}
 
-		// check username
-		$exists = username_exists( $mobile );
-		if ( $exists ) {
-			$error_message[] = 'شماره موبایل قبلا در سامانه ثبت شده است';
+		// check email
+		if ( !$mobile_exist && $email_exist ) {
+			$user = get_user_by('email', $email);
+
+			if (!in_array('ma_extra_user', $user->roles)){
+				$error_message[] = 'شما اجازه افزودن این شخص به عنوان همکار را ندارید. لطفا با یک شماره موبایل دیگر تلاش کنید';
+			} else if ($user->user_login != $mobile) {
+				$error_message[] = 'کاربر با این پست الکترونیک در سامانه وجود دارد اما شماره موبایل ایشان به درستی وارد نشده است';
+			}
 		}
 
 		if (count($error_message) > 0) return static::create_response($error_message, 403 );
@@ -224,13 +260,13 @@ class Users extends Registrerar {
 		$display_name = $user_info->display_name;
 		$pin = General::generatePIN(6);
 		$sendText = $display_name . ';' . $pin;
-		$code = General::sendCodeMelliPayamak( $mobile , '167680', $sendText );
+		// $code = General::sendCodeMelliPayamak( $mobile , '167680', $sendText );
 		$time = floor(microtime(true) * 1000);
 		$encoded_data = base64_encode(json_encode(['code'=> $pin,'time'=>$time]));
 
-
-		if( $code->RetStatus === 1) return static::create_response($encoded_data, 200 );
-		else return static::create_response( 'متاسفانه کد ارسال نشد. دقایقی دیگر مجدد تلاش کنید.', 200 );
+		return static::create_response($encoded_data, 200 );
+		// if( $code->RetStatus === 1) return static::create_response($encoded_data, 200 );
+		// else return static::create_response( 'متاسفانه کد ارسال نشد. دقایقی دیگر مجدد تلاش کنید.', 200 );
 	}
 
 }
