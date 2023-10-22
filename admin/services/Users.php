@@ -260,13 +260,12 @@ class Users extends Registrerar {
 		$display_name = $user_info->display_name;
 		$pin = General::generatePIN(6);
 		$sendText = $display_name . ';' . $pin;
-		// $code = General::sendCodeMelliPayamak( $mobile , '167680', $sendText );
+		$code = General::sendCodeMelliPayamak( $mobile , '167680', $sendText );
 		$time = floor(microtime(true) * 1000);
 		$encoded_data = base64_encode(json_encode(['code'=> $pin,'time'=>$time]));
 
-		return static::create_response($encoded_data, 200 );
-		// if( $code->RetStatus === 1) return static::create_response($encoded_data, 200 );
-		// else return static::create_response( 'متاسفانه کد ارسال نشد. دقایقی دیگر مجدد تلاش کنید.', 200 );
+		if( $code->RetStatus === 1) return static::create_response($encoded_data, 200 );
+		else return static::create_response( 'متاسفانه کد ارسال نشد. دقایقی دیگر مجدد تلاش کنید.', 200 );
 	}
 
 }
