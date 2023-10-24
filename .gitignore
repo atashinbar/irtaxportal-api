@@ -31,3 +31,4 @@ yarn.lock
 wpcs
 
 composer.lock
+admin/services/Licenses.php

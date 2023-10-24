@@ -121,11 +121,16 @@ class Companies extends Registrerar {
 			$MA_companies_table	= $wpdb->prefix . "MA_companies";
 			$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$MA_companies_table` WHERE user_id = %d", $userId ), ARRAY_A );
 
-			$companies = json_decode( $row['companies'], JSON_UNESCAPED_UNICODE );
-			$companies[$params['company_id']] = $params;
-			$companies	 = json_encode( $companies, JSON_UNESCAPED_UNICODE );
-
-			$update_MA_companies = $wpdb->query($wpdb->prepare("UPDATE `$MA_companies_table` SET companies='$companies' WHERE user_id= %d", $userId));
+			if ( ! is_array( $row ) ) {
+				$companies[$params['company_id']]	= $params;
+				$companies		= json_encode( $companies, JSON_UNESCAPED_UNICODE );
+				$update_MA_companies	 = $wpdb->query( $wpdb->prepare("INSERT INTO `$MA_companies_table` ( `user_id`, `companies` ) values (%d, %s)", $userId, $companies) );
+			} else {
+				$companies = json_decode( $row['companies'], JSON_UNESCAPED_UNICODE );
+				$companies[$params['company_id']] = $params;
+				$companies	 = json_encode( $companies, JSON_UNESCAPED_UNICODE );
+				$update_MA_companies = $wpdb->query($wpdb->prepare("UPDATE `$MA_companies_table` SET companies='$companies' WHERE user_id= %d", $userId));
+			}
 
 			if ( $update_MA_companies === 1 ) {
 				return static::create_response( 'فروشنده / شرکت با موفقیت بروزرسانی شد', 200 );

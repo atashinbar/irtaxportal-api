@@ -16,14 +16,14 @@ class Licenses extends Registrerar {
 	 *
 	 * @since  1.0.0
 	 */
-	public static $key = 'cca946cefc899e03c435ea3a1efa163a';
+	public static $key = '1f170ade5b6f7271365f484c497108a9';
 
 	/**
 	 * EDD API Keys Token.
 	 *
 	 * @since  1.0.0
 	 */
-	public static $token = '3cc70411acbcf15044c6775a2b6c1edb';
+	public static $token = '978f0bee678b8798cbebcd4dbe6bc782';
 
 	/**
 	* Get licenses.
@@ -37,6 +37,7 @@ class Licenses extends Registrerar {
 
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 		$params['email'] = sanitize_email( $params['email'] );
+		$params['type'] = sanitize_text_field( $params['type'] );
 
 		$response = wp_remote_post( home_url( '/edd-api/sales/' ), array(
 			'body'	=> [
@@ -45,7 +46,6 @@ class Licenses extends Registrerar {
 				'email'	=> $params['email'],
 			],
 		) );
-
 
 		if ( $response['response']['code'] !== 200 ) {
 			return static::create_response( 'خطایی رخ داده است', $response['response']['code'] );
@@ -67,14 +67,27 @@ class Licenses extends Registrerar {
 					) );
 
 					$response = json_decode( $response['body'], JSON_UNESCAPED_UNICODE );
-					$licenses[] = array(
-						'name' => $license->name,
-						'allowed' => $response['activations_left'] > 0 ? 1 : 0,
-						'key' => $license->key,
-					);
+					if ( $params['type'] == 'list') {
+						$licenses[] = array(
+							'id'=>$item->ID,
+							'date'=>$item->date,
+							'expire' => str_replace('+00:00', 'Z', gmdate('c', strtotime($response['expires']))),
+							'total'=>(int)$item->subtotal,
+							'name' => $license->name,
+							'status' => $response['activations_left'] > 0 ? 'قابل استفاده': 'سقف مجاز پر شده است',
+							'key' => $license->key,
+						);
+					} else {
+						$licenses[] = array(
+							'name' => $license->name,
+							'allowed' => $response['activations_left'] > 0 ? 1 : 0,
+							'key' => $license->key,
+						);
+					}
 				}
 			}
 		}
+
 
 		if ( ! empty( $licenses ) ) {
 			$response = json_encode( $licenses );
