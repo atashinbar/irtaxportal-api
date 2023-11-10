@@ -16,13 +16,13 @@ class General extends Registrerar {
 	 *
 	 * @since 1.0.0
 	 */
-	public static function sendCodeFarazSMS($mobile,$pattern,$code) {
+	public static function sendCodeFarazSMS( $mobile, $pattern, $code ) {
 		//FarazSMS
 		$username = "09126183621";
         $password = "0493305378";
         $from = "+983000505";
         $pattern_code = $pattern;
-        $to = array($mobile);
+        $to = array( $mobile );
         $input_data = array("code" => (int)$code);
         $url = "https://ippanel.com/patterns/pattern?username=" . $username . "&password=" . urlencode($password) . "&from=$from&to=" . json_encode($to) . "&input_data=" . urlencode(json_encode($input_data)) . "&pattern_code=$pattern_code";
         $handler = curl_init($url);

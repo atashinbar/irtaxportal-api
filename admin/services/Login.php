@@ -35,8 +35,8 @@ class Login extends Registrerar {
 
 		$login_response = wp_remote_post( $url . '?rest_route=/auth/v1/auth', array(
 			'body'    => [
-				'email' => $params['username'],
-				'password' => $params['password']
+				'email' => sanitize_text_field( $params['username'] ),
+				'password' => sanitize_text_field( $params['password'] )
 			],
 		) );
 

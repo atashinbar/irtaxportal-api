@@ -41,6 +41,11 @@ class Products extends Registrerar {
 	 */
 	public static function update_single_product( $request ) {
         $params	= $request->get_params();
+
+		$params['name']		= sanitize_text_field( $params['name'] );
+		$params['id']		= sanitize_text_field( $params['id'] );
+		$params['taxRate']	= sanitize_text_field( $params['taxRate'] );
+
 		$userId = get_current_user_id();
 
         if (!$userId) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
@@ -86,9 +91,9 @@ class Products extends Registrerar {
 	 */
 	public static function delete_single_product( $request ) {
         $params	= $request->get_params();
-        $PId = $params[0];
-		$userId = get_current_user_id();
-        if (!$userId) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
+        $PId	= (int) sanitize_text_field( $params[0] );
+		$userId	= get_current_user_id();
+        if ( ! $userId ) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
 
 		$userId = static::check_main_user_id($userId);
 

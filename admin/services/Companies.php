@@ -16,10 +16,11 @@ class Companies extends Registrerar {
 	 *
 	 * @since 1.0.0
 	 */
-	public static function check_mode($code_eghtesadi) {
+	public static function check_mode( $code_eghtesadi ) {
 		global $wpdb;
-		$tablename	= $wpdb->prefix . "MA_licenses";
-		$row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE code_eghtesadi = %d", $code_eghtesadi ), ARRAY_A );
+		$tablename		= $wpdb->prefix . "MA_licenses";
+		$code_eghtesadi	= esc_html( $code_eghtesadi );
+		$row			= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE code_eghtesadi = %d", $code_eghtesadi ), ARRAY_A );
 		if ( ! is_array( $row ) ) {
 			$mode = 1; //add new
 		} else {
@@ -33,12 +34,12 @@ class Companies extends Registrerar {
 	 *
 	 * @since 1.0.0
 	 */
-	public static function license_is_valid($license) {
+	public static function license_is_valid( $license ) {
 		$response = wp_remote_post( home_url( '/' ), array(
 			'body'	=> [
 				'edd_action'	=> 'check_license',
 				'item_id'		=> '636',
-				'license'		=> $license,
+				'license'		=> esc_html( $license ),
 			],
 		) );
 
@@ -152,8 +153,8 @@ class Companies extends Registrerar {
 			'body'	=> [
 				'edd_action'	=> 'activate_license',
 				'item_id'		=> '636',
-				'license'		=> $license,
-				'url'			=> $cod_eqtesadi,
+				'license'		=> esc_html( $license ),
+				'url'			=> esc_html( $cod_eqtesadi ),
 			],
 		) );
 
@@ -170,8 +171,8 @@ class Companies extends Registrerar {
 			'body'	=> [
 				'edd_action'	=> 'deactivate_license',
 				'item_id'		=> '636',
-				'license'		=> $license,
-				'url'			=> $cod_eqtesadi,
+				'license'		=> esc_html( $license ),
+				'url'			=> esc_html( $cod_eqtesadi ),
 			],
 		) );
 
@@ -225,7 +226,7 @@ class Companies extends Registrerar {
 	*/
 	public static function delete_company( $request ) {
 		$params			= $request->get_params();
-		$company_id	= (int)sanitize_text_field( $params['company_id'] );
+		$company_id	= (int) sanitize_text_field( $params['company_id'] );
 
 		static::check_user_id('check');
 

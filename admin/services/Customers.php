@@ -74,7 +74,7 @@ class Customers extends Registrerar {
 	*/
 	public static function delete_customer( $request ) {
 		$params			= $request->get_params();
-		$customer_id	= (int)sanitize_text_field( $params['customer_id'] );
+		$customer_id	= (int) sanitize_text_field( $params['customer_id'] );
 
 		static::check_user_id('check');
 
