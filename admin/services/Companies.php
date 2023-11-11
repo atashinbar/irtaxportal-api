@@ -37,6 +37,7 @@ class Companies extends Registrerar {
 	public static function license_is_valid( $license ) {
 		$response = wp_remote_post( home_url( '/' ), array(
 			'body'	=> [
+				'trusted'		=> 'true',
 				'edd_action'	=> 'check_license',
 				'item_id'		=> '636',
 				'license'		=> esc_html( $license ),
@@ -151,6 +152,7 @@ class Companies extends Registrerar {
 	public static function active_license( $license, $cod_eqtesadi ) {
 		$response = wp_remote_post( home_url( '/' ), array(
 			'body'	=> [
+				'trusted'		=> 'true',
 				'edd_action'	=> 'activate_license',
 				'item_id'		=> '636',
 				'license'		=> esc_html( $license ),
@@ -169,6 +171,7 @@ class Companies extends Registrerar {
 	public static function deactive_license( $license, $cod_eqtesadi ) {
 		$response = wp_remote_post( home_url( '/' ), array(
 			'body'	=> [
+				'trusted'		=> 'true',
 				'edd_action'	=> 'deactivate_license',
 				'item_id'		=> '636',
 				'license'		=> esc_html( $license ),
