@@ -60,6 +60,7 @@ class Licenses extends Registrerar {
 				foreach ( $item->licenses as $license ) {
 					$response = wp_remote_post( home_url( '/' ), array(
 						'body'	=> [
+							'trusted'		=> 'true',
 							'edd_action'	=> 'check_license',
 							'item_id'		=> '636',
 							'license'		=> $license->key,
