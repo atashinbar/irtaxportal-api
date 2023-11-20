@@ -61,7 +61,7 @@ final class Manager {
 	 * @since 1.0.0
 	 */
 	function add_roles_on_plugin_activation() {
-		add_role( 'ma_extra_user', 'کاربر افزوده', array( 'read' => true, 'level_0' => true ) );
+		add_role( 'ma_extra_user', 'همکار', array( 'read' => true, 'level_0' => true ) );
 	}
 
 	/**
