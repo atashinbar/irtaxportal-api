@@ -135,6 +135,40 @@ final class Manager {
 		PRIMARY KEY  (id)
 		) $charset_collate;";
 
+		$MA_main_invoices = $wpdb->prefix . "MA_main_invoices";
+		$sql .= "CREATE TABLE $MA_main_invoices (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		submit_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		modified_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		customer_id mediumint(9) NOT NULL,
+		company_id mediumint(9) NOT NULL,
+		status mediumint(9) NOT NULL,
+		irtaxid varchar(255) NOT NULL,
+		ref_number varchar(255) NOT NULL,
+		form_data longtext NOT NULL,
+		main_user_id mediumint(9) NOT NULL,
+		hamkar_user_id mediumint(9) NOT NULL,
+		nested_id mediumint(9) NOT NULL,
+		PRIMARY KEY  (id)
+		) $charset_collate;";
+
+		$MA_sandbox_invoices = $wpdb->prefix . "MA_sandbox_invoices";
+		$sql .= "CREATE TABLE $MA_sandbox_invoices (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		submit_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		modified_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		customer_id mediumint(9) NOT NULL,
+		company_id mediumint(9) NOT NULL,
+		status mediumint(9) NOT NULL,
+		irtaxid varchar(255) NOT NULL,
+		ref_number varchar(255) NOT NULL,
+		form_data longtext NOT NULL,
+		main_user_id mediumint(9) NOT NULL,
+		hamkar_user_id mediumint(9) NOT NULL,
+		nested_id mediumint(9) NOT NULL,
+		PRIMARY KEY  (id)
+		) $charset_collate;";
+
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		dbDelta( $sql );
 	}
