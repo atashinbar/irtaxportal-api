@@ -135,8 +135,8 @@ final class Manager {
 		PRIMARY KEY  (id)
 		) $charset_collate;";
 
-		$MA_main_invoices = $wpdb->prefix . "MA_main_invoices";
-		$sql .= "CREATE TABLE $MA_main_invoices (
+		$MA_main_bill = $wpdb->prefix . "MA_main_bill";
+		$sql .= "CREATE TABLE $MA_main_bill (
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
 		submit_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		modified_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -152,8 +152,8 @@ final class Manager {
 		PRIMARY KEY  (id)
 		) $charset_collate;";
 
-		$MA_sandbox_invoices = $wpdb->prefix . "MA_sandbox_invoices";
-		$sql .= "CREATE TABLE $MA_sandbox_invoices (
+		$MA_sandbox_bill = $wpdb->prefix . "MA_sandbox_bill";
+		$sql .= "CREATE TABLE $MA_sandbox_bill (
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
 		submit_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		modified_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
