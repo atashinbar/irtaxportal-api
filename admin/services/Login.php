@@ -6,6 +6,10 @@
  */
 
 namespace MoadianAbzar\Admin\Services;
+use SimpleJWTLogin\Libraries\JWT\JWT;
+use SimpleJWTLogin\Helpers\Jwt\JwtKeyFactory;
+use SimpleJWTLogin\Modules\SimpleJWTLoginSettings;
+use SimpleJWTLogin\Modules\WordPressData;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -33,25 +37,60 @@ class Login extends Registrerar {
 		$params	= $request->get_params();
 		$url = home_url('/');
 
-		$login_response = wp_remote_post( $url . '?rest_route=/auth/v1/auth', array(
-			'body'    => [
-				'email' => sanitize_text_field( $params['username'] ),
-				'password' => sanitize_text_field( $params['password'] )
-			],
-		) );
+		// Login by Mobile number
+		if ( is_numeric( $params['username'] ) ) {
 
-		if ($login_response['response']['code'] != 200 ) return static::create_response( 'ورود شما ناموفق بود. لطفا نام کاربری و رمز عبور خود را  به صورت صحیح وارد کنید' , 403 );
+			$get_user_by = get_user_by( 'login', sanitize_text_field( $params['username'] ) );
 
+			if ( ! $get_user_by ) {
+				return static::create_response( 'با این شماره موبایل اکانتی در سایت ثبت نشده است' , 403 );
+			}
 
-		$response = json_decode($login_response['body']);
-		$jwt = $response->data->jwt;
+			$payload = array(
+				'iat'       => time(),
+				'email'     => sanitize_text_field( $get_user_by->user_email ),
+				'id'        => sanitize_text_field( $get_user_by->ID ),
+				'username'  => sanitize_text_field( $get_user_by->user_login ),
+			);
+
+			$jwtSettings = new SimpleJWTLoginSettings(new WordPressData());
+
+			$response = [
+				'success' => true,
+				'data' => [
+					'jwt' => JWT::encode(
+						$payload,
+						JwtKeyFactory::getFactory($jwtSettings)->getPrivateKey(),
+						$jwtSettings->getGeneralSettings()->getJWTDecryptAlgorithm()
+					)
+				]
+			];
+
+		} else {
+
+			$login_response = wp_remote_post( $url . '?rest_route=/auth/v1/auth', array(
+				'body'    => [
+					'email' => sanitize_text_field( $params['username'] ),
+					'password' => sanitize_text_field( $params['password'] )
+				],
+			) );
+
+			if ($login_response['response']['code'] != 200 ) return static::create_response( 'ورود شما ناموفق بود. لطفا نام کاربری و رمز عبور خود را  به صورت صحیح وارد کنید' , 403 );
+
+			$response = json_decode($login_response['body']);
+		}
+
+		if ( isset( $response->data->jwt ) ) {
+			$jwt = $response->data->jwt;
+		} else {
+			$jwt = $response['data']['jwt'];
+		}
 
 		$login_validate = wp_remote_post( $url . '?rest_route=/auth/v1/auth/validate', array(
 			'body'    => [
 				'JWT' => $jwt,
 			],
 		) );
-
 
 		if ($login_validate['response']['code'] != 200 ) return static::create_response( 'نام کاربری یا رمز عبور شما اشتباه است' , 403 );
 
