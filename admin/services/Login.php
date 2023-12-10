@@ -67,6 +67,7 @@ class Login extends Registrerar {
 				'display_name' => $user->display_name,
 				'roles' => $roles,
 				'main_user' => $mainUser,
+				'user_mobile' => $user->user_login,
 			]
 		];
 
