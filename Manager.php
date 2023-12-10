@@ -171,6 +171,14 @@ final class Manager {
 		PRIMARY KEY  (id)
 		) $charset_collate;";
 
+		$MA_settings = $wpdb->prefix . "MA_settings";
+		$sql .= "CREATE TABLE $MA_settings (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		user_id INT NOT NULL,
+		settings longtext NOT NULL,
+		PRIMARY KEY  (id)
+		) $charset_collate;";
+
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		dbDelta( $sql );
 	}

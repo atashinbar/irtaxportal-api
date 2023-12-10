@@ -204,6 +204,46 @@ class Registrerar {
 				),
 			)
 		);
+
+		register_rest_route(
+			'MoadianAbzar/v1',
+			'bill',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_bill_info' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'send_bill' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::DELETABLE,
+					'callback'            => array( $this, 'cancel_bill' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+			)
+		);
+
+
+		register_rest_route(
+			'MoadianAbzar/v1',
+			'settings',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_settings' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'update_settings' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+			)
+		);
 	}
 
 	/**
@@ -448,5 +488,50 @@ class Registrerar {
 	 */
 	public static function get_licenses( $request ) {
 		return Licenses::get_licenses( $request );
+	}
+
+	/**
+	 * Get bill info from tax portal
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_bill_info( $request ) {
+		return Bills::get_bill_info( $request );
+	}
+
+	/**
+	 * send bill to tax portal
+	 *
+	 * @since 1.0.0
+	 */
+	public static function send_bill( $request ) {
+		return Bills::send_bill( $request );
+	}
+
+	/**
+	 * cancel bill
+	 *
+	 * @since 1.0.0
+	 */
+	public static function cancel_bill( $request ) {
+		return Bills::cancel_bill( $request );
+	}
+
+	/**
+	 * get settings
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_settings( $request ) {
+		return Settings::get_settings( $request );
+	}
+
+	/**
+	 * update settings
+	 *
+	 * @since 1.0.0
+	 */
+	public static function update_settings( $request ) {
+		return Settings::update_settings( $request );
 	}
 }
