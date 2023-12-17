@@ -32,6 +32,7 @@ class General extends Registrerar {
         $response = curl_exec($handler);
         return $response;
 	}
+
 	public static function sendCodeMelliPayamak($mobile,$pattern,$code) {
 		//MelliPayamak
 		// $username = "9355012489";
@@ -86,5 +87,17 @@ class General extends Registrerar {
         }
         return $pin;
     }
+
+	public static function convertFatoEn($string) {
+		return strtr($string, array('۰'=>'0', '۱'=>'1', '۲'=>'2', '۳'=>'3', '۴'=>'4', '۵'=>'5', '۶'=>'6', '۷'=>'7', '۸'=>'8', '۹'=>'9', '٠'=>'0', '١'=>'1', '٢'=>'2', '٣'=>'3', '٤'=>'4', '٥'=>'5', '٦'=>'6', '٧'=>'7', '٨'=>'8', '٩'=>'9'));
+	}
+
+	public static function generateUidv4($data = null) {
+		$data = $data ?? random_bytes(16);
+		assert(strlen($data) == 16);
+		$data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+		$data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+	}
 
 }

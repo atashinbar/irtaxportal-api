@@ -30,7 +30,7 @@ class Settings extends Registrerar {
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", $userId), ARRAY_A);
 
         if (!is_array($row)) {
-            return [];
+            return null;
         }
 
 		return static::create_response( $row, 200 );
@@ -52,18 +52,21 @@ class Settings extends Registrerar {
         $tablename = $wpdb->prefix . self::$main_DB_name;
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", $userId), ARRAY_A);
         if (!is_array($row)) {
-            $user_id     = $userId;
             $settings    = json_encode($params,JSON_UNESCAPED_UNICODE);
-            $sql = $wpdb->prepare("INSERT INTO `$tablename` (`user_id`, `settings`) values (%d, %s)", $user_id, $settings);
+            $sql = $wpdb->prepare("INSERT INTO `$tablename` (`user_id`, `settings`) values (%d, %s)", $userId, $settings);
             $update = $wpdb->query($sql);
         } else {
             $newValue = json_encode($params,JSON_UNESCAPED_UNICODE);
             $update = $wpdb->query($wpdb->prepare("UPDATE `$tablename` SET settings='$newValue' WHERE user_id= %d", $userId));
         }
 
-		if ( $update === 1 )
+		if ( $update === 1 ){
+			if ( $params['password'] === $params['rePassword']) {
+				wp_set_password( $params['password'], $userId );
+			}
         	return static::create_response( 'تنظیمات ذخیره شد', 200 );
-        else
-        	return static::create_response( 'برای ذخیره سازی باید حداقل یک گزینه را تغییر دهید', 403 );
+		} else {
+			return static::create_response( 'برای ذخیره سازی باید حداقل یک گزینه را تغییر دهید', 403 );
+		}
 	}
 }
