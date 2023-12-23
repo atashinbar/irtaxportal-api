@@ -3,7 +3,7 @@
  * Plugin Name:       Moadianabzar API
  * Plugin URI:        https://irtaxportal.com
  * Description:       -
- * Version:           1.0.0
+ * Version:          10.0.0
  * Requires at least: 5.2
  * Requires PHP:      5.6
  * Author:            Moadianabzar

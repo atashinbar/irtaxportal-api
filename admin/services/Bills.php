@@ -33,15 +33,15 @@ class Bills extends Registrerar {
 		$response = '';
 		if ($publishStatus === 'published') {
 			$response = static::send_to_portal($formData , 'send');
-			$body = isset($response['body']) ? json_decode($response['body']) : null;
+			// $body = isset($response['body']) ? json_decode($response['body']) : null;
 		}
 
-		$final_response = '';
-		if ( (isset($body) && !is_null($body) && isset($body->success) && $body->success) || $publishStatus === 'draft' ) {
-			$final_response = static::save_on_DB($formData, $response,$userId);
-		}
+		// $final_response = '';
+		// if ( (isset($body) && !is_null($body) && isset($body->success) && $body->success) || $publishStatus === 'draft' ) {
+		// 	$final_response = static::save_on_DB($formData, $response,$userId);
+		// }
 
-		return static::create_response( $final_response, 200 );
+		return static::create_response( $response, 200 );
 	}
 
 	// 3- send function (gereftane parametr ha va jaygozin kardane unha va ersal be samaneye maliat)
@@ -156,9 +156,9 @@ class Bills extends Registrerar {
 			$olt = isset($value['olt']) ? esc_html( $value['olt'] ) : null;
 			$olr = isset($value['olr']) ? (int)(esc_html( str_replace(',', '', General::convertFatoEn($value['olr'])) )) : null;
 			$olam = isset($value['olam']) ? (int)(esc_html( str_replace(',', '', General::convertFatoEn($value['olam'])) )) : null;
-			$consfee = isset($value['consfee']) ? (int)(esc_html( str_replace(',', '', General::convertFatoEn($value['consfee'])) )) : 0;
+			$consfee = isset($value['consfee']) ? (int)(esc_html( str_replace(',', '', General::convertFatoEn($value['consfee'])) )) : null;
 			$spro = isset($value['spro']) ? (int)(esc_html( str_replace(',', '', General::convertFatoEn($value['spro'])) )) : null;
-			$bros = isset($value['bros']) ? (int)(esc_html( str_replace(',', '', General::convertFatoEn($value['bros'])) )) : 0;
+			$bros = isset($value['bros']) ? (int)(esc_html( str_replace(',', '', General::convertFatoEn($value['bros'])) )) : null;
 			$tcpbs = isset($value['tcpbs']) ? (int)(esc_html( str_replace(',', '', General::convertFatoEn($value['tcpbs'])) )) : null;
 			$cop = isset($value['cop']) ? (int)(esc_html( str_replace(',', '', General::convertFatoEn($value['cop'])) )) : 0;
 			$vop = isset($value['vop']) ? (int)(esc_html( str_replace(',', '', General::convertFatoEn($value['vop'])) )) : 0;
@@ -242,7 +242,6 @@ class Bills extends Registrerar {
 			'body'        => $body,
 			'headers'     => [
 				'Content-Type' => 'application/json',
-				'Cache-Control' => 'no-cache',
 			],
 			'timeout'     => 60,
 			'redirection' => 5,
@@ -311,9 +310,24 @@ class Bills extends Registrerar {
 
 	// 6- eslahe bill
 
-	// Get all bill
+	// Get all Bill
 	public static function get_bills($request) {
+		$params	= $request->get_params();
 
+		global $wpdb;
+        $pagenum = isset( $params['pagination']['current'] ) ? absint( $params['pagination']['current'] ) : 1;
+        $limit = $params['pagination']['pageSize'];
+        $offset = ($pagenum-1) * $limit;
+        $total = $wpdb->get_var( "SELECT COUNT(*) FROM wp_MA_sandbox_bill" );
+        $num_of_pages = ceil( $total / $limit );
+
+        $qry="select * from wp_MA_sandbox_bill LIMIT $offset, $limit";
+        $result = $wpdb->get_results($qry, object);
+
+		$data['total'] = $total;
+		$data['result'] = $result;
+
+		return $data;
 	}
 
 	// Get Single Bill
