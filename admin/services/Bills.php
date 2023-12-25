@@ -374,10 +374,10 @@ class Bills extends Registrerar {
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
 		global $wpdb;
-        $pagenum = isset( $params['pagination']['current'] ) ? absint( $params['pagination']['current'] ) : 1;
-        $limit = $params['pagination']['pageSize'];
+        $pagenum = isset( $params['tableParams']['pagination']['current'] ) ? absint( $params['tableParams']['pagination']['current'] ) : 1;
+        $limit = $params['tableParams']['pagination']['pageSize'];
         $offset = ($pagenum-1) * $limit;
-		$db = $params['database'] === 'sandbox' ? self::$sandbox_DB_name : self::$sandbox_DB_name;
+		$db = $params['database'] === 'sandbox' ? 'MA_sandbox_bill' : 'MA_main_bill';
 		$tablename = $wpdb->prefix . $db;
 
 		$total = $wpdb->get_var( "SELECT COUNT(*) FROM `$tablename` WHERE main_user_id = $userId" );
