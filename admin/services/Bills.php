@@ -33,15 +33,15 @@ class Bills extends Registrerar {
 		$response = '';
 		if ($publishStatus === 'published') {
 			$response = static::send_to_portal($formData , 'send');
-			// $body = isset($response['body']) ? json_decode($response['body']) : null;
+			$body = isset($response['body']) ? json_decode($response['body']) : null;
 		}
 
-		// $final_response = '';
-		// if ( (isset($body) && !is_null($body) && isset($body->success) && $body->success) || $publishStatus === 'draft' ) {
-		// 	$final_response = static::save_on_DB($formData, $response,$userId);
-		// }
+		$final_response = '';
+		if ( (isset($body) && !is_null($body) && isset($body->success) && $body->success) || $publishStatus === 'draft' ) {
+			$final_response = static::save_on_DB($formData, $response,$userId);
+		}
 
-		return static::create_response( $response, 200 );
+		return static::create_response( $final_response, 200 );
 	}
 
 	// 3- send function (gereftane parametr ha va jaygozin kardane unha va ersal be samaneye maliat)
@@ -307,6 +307,61 @@ class Bills extends Registrerar {
 	// 4- ebtale bill
 
 	// 5- estelame vaziat
+	public static function get_inquiry($request) {
+		$params	= $request->get_params();
+		$refNumber = isset($params['ref_number']) ? $params['ref_number'] : null;
+
+		if(is_null($refNumber) || empty($refNumber)) return static::create_response( 'شماره ارجاع مالیاتی خالی است', 403 );
+
+		if ($params['company'] === 'sandbox') {
+
+		}
+		$data = array(
+			"command" => "ref",
+			"user_name"=> $params['company']['shenaseYekta'],
+			"private_key"=> $params['company']['privateCode'],
+			"is_sandbox"=> (int)$params['sandbox'],
+			"ref_number"=> $refNumber,
+		);
+
+		$body = wp_json_encode( $data );
+
+		$response = wp_remote_post( self::$sendURL, array(
+			'method'      => 'POST',
+			'body'        => $body,
+			'headers'     => [
+				'Content-Type' => 'application/json',
+			],
+			'timeout'     => 60,
+			'redirection' => 5,
+			'blocking'    => true,
+			'httpversion' => '1.0',
+			'sslverify'   => false,
+			'data_format' => 'body',
+			)
+		);
+
+		$result = json_decode($response['body']);
+
+		$status = $result->success;
+		$result = $result->result;
+		$errors = $result[0]->erorrs;
+
+		if ($result[0]->status == 'PENDING') {
+			$message = "فاکتور شما در حال ثبت در سامانه است. لطفا ساعاتی دیگر مجدد استعلام بگیرید";
+			return static::create_response( $message, 300 );
+		}
+		if ($result[0]->status == 'SUCCESS') {
+			$message = "فاکتور شما با موفقیت ثبت شده است. لطفا به کارپوشه اداره مالیات مراجعه کنید";
+			return static::create_response($message, 200 );
+		}
+		if ($result[0]->status == 'FAILED') {
+			$message = json_encode($errors);
+			return static::create_response($message, 403 );
+		}
+
+		return '';
+	}
 
 	// 6- eslahe bill
 
@@ -314,14 +369,21 @@ class Bills extends Registrerar {
 	public static function get_bills($request) {
 		$params	= $request->get_params();
 
+		// Check User id
+		static::check_user_id('check');
+		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
+
 		global $wpdb;
         $pagenum = isset( $params['pagination']['current'] ) ? absint( $params['pagination']['current'] ) : 1;
         $limit = $params['pagination']['pageSize'];
         $offset = ($pagenum-1) * $limit;
-        $total = $wpdb->get_var( "SELECT COUNT(*) FROM wp_MA_sandbox_bill" );
+		$db = $params['database'] === 'sandbox' ? self::$sandbox_DB_name : self::$sandbox_DB_name;
+		$tablename = $wpdb->prefix . $db;
+
+		$total = $wpdb->get_var( "SELECT COUNT(*) FROM `$tablename` WHERE main_user_id = $userId" );
         $num_of_pages = ceil( $total / $limit );
 
-        $qry="select * from wp_MA_sandbox_bill LIMIT $offset, $limit";
+        $qry="select * from $tablename WHERE main_user_id = $userId ORDER BY id DESC LIMIT $offset, $limit";
         $result = $wpdb->get_results($qry, object);
 
 		$data['total'] = $total;

@@ -211,7 +211,7 @@ class Registrerar {
 			array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'get_single_bill' ),
+					'callback'            => array( $this, 'get_bill' ),
 					'permission_callback' => array( $this , 'permission_callback' ),
 				),
 				array(
@@ -234,6 +234,23 @@ class Registrerar {
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_bills' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'get_total_bills' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			'MoadianAbzar/v1',
+			'inquiry',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_inquiry' ),
 					'permission_callback' => array( $this , 'permission_callback' ),
 				),
 			)
@@ -507,8 +524,8 @@ class Registrerar {
 	 *
 	 * @since 1.0.0
 	 */
-	public static function get_single_bill( $request ) {
-		return Bills::get_single_bill( $request );
+	public static function get_bill( $request ) {
+		return Bills::get_bill( $request );
 	}
 
 	/**
@@ -536,6 +553,24 @@ class Registrerar {
 	 */
 	public static function get_bills( $request ) {
 		return Bills::get_bills( $request );
+	}
+
+	/**
+	 * Get total bills
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_total_bills( $request ) {
+		return Bills::get_total_bills( $request );
+	}
+
+	/**
+	 * Get inquiry info from tax portal
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_inquiry( $request ) {
+		return Bills::get_inquiry( $request );
 	}
 
 	/**
