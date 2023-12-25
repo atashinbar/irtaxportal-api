@@ -383,13 +383,39 @@ class Bills extends Registrerar {
 		$total = $wpdb->get_var( "SELECT COUNT(*) FROM `$tablename` WHERE main_user_id = $userId" );
         $num_of_pages = ceil( $total / $limit );
 
-        $qry="select * from $tablename WHERE main_user_id = $userId ORDER BY id DESC LIMIT $offset, $limit";
+		if ( $limit == -1 ) {
+			$qry="select * from $tablename WHERE main_user_id = $userId ORDER BY id DESC";
+		} else {
+			$qry="select * from $tablename WHERE main_user_id = $userId ORDER BY id DESC LIMIT $offset, $limit";
+		}
+
         $result = $wpdb->get_results($qry, object);
 
 		$data['total'] = $total;
 		$data['result'] = $result;
 
 		return $data;
+	}
+
+	// Get total Bill
+	public static function get_total_bills($request) {
+
+		$params	= $request->get_params();
+
+		// Check User id
+		static::check_user_id('check');
+		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
+
+		global $wpdb;
+		$db			= sanitize_text_field( $params['database'] );
+		$tablename	= $wpdb->prefix . $db;
+		$total		= $wpdb->get_var( "SELECT COUNT(*) FROM `$tablename` WHERE main_user_id = $userId" );
+
+		if ( $total ) {
+			return static::create_response( $total, 200 );
+		}
+
+		return static::create_response( 'مشکلی پیش آمده است', 200 );
 	}
 
 	// Get Single Bill
