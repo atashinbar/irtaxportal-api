@@ -149,7 +149,7 @@ final class Manager {
 		form_data longtext NOT NULL,
 		main_user_id varchar(100) NOT NULL,
 		hamkar_user_id varchar(100) NOT NULL,
-		nested_id varchar(100) NOT NULL,
+		nested longtext NOT NULL,
 		PRIMARY KEY  (id)
 		) $charset_collate;";
 
@@ -167,7 +167,7 @@ final class Manager {
 		form_data longtext NOT NULL,
 		main_user_id varchar(100) NOT NULL,
 		hamkar_user_id varchar(100) NOT NULL,
-		nested_id varchar(100) NOT NULL,
+		nested longtext NOT NULL,
 		PRIMARY KEY  (id)
 		) $charset_collate;";
 

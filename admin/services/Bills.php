@@ -33,7 +33,7 @@ class Bills extends Registrerar {
 		$response = '';
 		if ($publishStatus === 'published') {
 			$response = static::send_to_portal($formData , 'send');
-			$body = isset($response['body']) ? json_decode($response['body']) : null;
+			$body = (isset($response) && !empty($response)) ? $response : null;
 		}
 
 		$final_response = '';
@@ -235,23 +235,7 @@ class Bills extends Registrerar {
 			"invoice"=> $invoice
 		);
 
-		$body = wp_json_encode( $data );
-
-		$response = wp_remote_post( self::$sendURL, array(
-			'method'      => 'POST',
-			'body'        => $body,
-			'headers'     => [
-				'Content-Type' => 'application/json',
-			],
-			'timeout'     => 60,
-			'redirection' => 5,
-			'blocking'    => true,
-			'httpversion' => '1.0',
-			'sslverify'   => false,
-			'data_format' => 'body',
-			)
-		);
-		return $response;
+		$result = self::send_to_tax_portal($data);
 
 	}
 
@@ -266,7 +250,7 @@ class Bills extends Registrerar {
 		$body = ($response !== '' && isset($response['body'])) ? json_decode($response['body']) : null;
 		$ref_number = !is_null($body) ? $body->referenceNumber : null;
 		$irtaxid = !is_null($body) ? $body->taxId : null;
-		$send_status = !is_null($body) && $body->success ? 'ارسال شده' : null;
+		$send_status = !is_null($body) && $body->success ? 0 : null;
 
 		$MAMainUser = get_user_meta( $userId, 'MAMainUser', true );
 		$mainUser = $MAMainUser === '' ? $userId : $MAMainUser;
@@ -285,7 +269,7 @@ class Bills extends Registrerar {
 			`form_data`,
 			`main_user_id`,
 			`hamkar_user_id`,
-			`nested_id`
+			`nested`
 		 ) values (%s, %s, %s, %s, %s, %s, %s, %d, %d, %d)",
 			$customerInfo['id'],
 			$formInfo['tins'],
@@ -305,6 +289,55 @@ class Bills extends Registrerar {
 	}
 
 	// 4- ebtale bill
+	public static function cancel_bill( $request ) {
+		$params	= $request->get_params();
+
+		// Check User id
+		static::check_user_id('check');
+		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
+
+		$header['indatim'] = (int)$params['submit_date'];
+		$header['ins'] = 3;
+		$header['irtaxid'] =  $params['irtaxid'];
+		$header['inno'] = (string)rand(1000000000,9999999999);
+		$header['tins'] =  $params['company']['codeEghtesadi'];
+
+		$invoice = array();
+		$invoice['extension'] = array();
+		$invoice['body'] = array();
+		$invoice['header'] = $header;
+
+		$data = array(
+			"command" => 'send',
+			"user_name"=> $params['company']['shenaseYekta'],
+			"private_key"=> $params['company']['privateCode'],
+			"is_sandbox"=> (int)$params['sandbox'],
+			"uid"=> $this->guidv4(),
+			"invoice"=> $invoice
+		);
+
+		$result = self::send_to_tax_portal($data);
+
+		if (isset($result->success) && $result->success === true) {
+			$tableName = $params['sandbox'] === 'sandbox' ?  self::$sandbox_DB_name : self::$main_DB_name ;
+			$db_result = self::update_DB($tableName, $userId, $params['id'], 'send_status' , '-1');
+
+			$invoiceQuery="
+				UPDATE ".$this->invoiceTable."
+				SET invoice_status='-1', invoice_id='".$result->taxId."', invoice_reference_number='".$result->referenceNumber."', submit_date='".floor(microtime(true) * 1000)."'
+				WHERE invoice_id = '".$info['data']['invoice_id']."'";
+			if( mysqli_query($this->dbConnect, $invoiceQuery)) {
+				$message = "فاکتور شما با موفقیت ابطال شد";
+				$status = 1;
+				$this->response($status,$message);
+			} else {
+				$message = "ابطال فاکتور با خطا مواجه شد";
+				$status = 0;
+				$this->response($status,$message);
+			}
+		}
+
+	}
 
 	// 5- estelame vaziat
 	public static function get_inquiry($request) {
@@ -313,9 +346,10 @@ class Bills extends Registrerar {
 
 		if(is_null($refNumber) || empty($refNumber)) return static::create_response( 'شماره ارجاع مالیاتی خالی است', 403 );
 
-		if ($params['company'] === 'sandbox') {
+		// Check User id
+		static::check_user_id('check');
+		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
-		}
 		$data = array(
 			"command" => "ref",
 			"user_name"=> $params['company']['shenaseYekta'],
@@ -324,43 +358,46 @@ class Bills extends Registrerar {
 			"ref_number"=> $refNumber,
 		);
 
-		$body = wp_json_encode( $data );
+		$res = self::send_to_tax_portal($data);
 
-		$response = wp_remote_post( self::$sendURL, array(
-			'method'      => 'POST',
-			'body'        => $body,
-			'headers'     => [
-				'Content-Type' => 'application/json',
-			],
-			'timeout'     => 60,
-			'redirection' => 5,
-			'blocking'    => true,
-			'httpversion' => '1.0',
-			'sslverify'   => false,
-			'data_format' => 'body',
-			)
-		);
+		$status = $res->success;
+		$result = $res->result;
+		$errors = $res[0]->erorrs;
 
-		$result = json_decode($response['body']);
-
-		$status = $result->success;
-		$result = $result->result;
-		$errors = $result[0]->erorrs;
-
+		$tableName = (int)$params['sandbox'] === 1 ?  self::$sandbox_DB_name : self::$main_DB_name ;
 		if ($result[0]->status == 'PENDING') {
+			$db_result = self::update_DB($tableName, $userId, $params['id'], 'send_status' , '-10');
 			$message = "فاکتور شما در حال ثبت در سامانه است. لطفا ساعاتی دیگر مجدد استعلام بگیرید";
 			return static::create_response( $message, 300 );
 		}
 		if ($result[0]->status == 'SUCCESS') {
+			$db_result = self::update_DB($tableName, $userId, $params['id'], 'send_status' , '1');
 			$message = "فاکتور شما با موفقیت ثبت شده است. لطفا به کارپوشه اداره مالیات مراجعه کنید";
 			return static::create_response($message, 200 );
 		}
 		if ($result[0]->status == 'FAILED') {
+			$db_result = self::update_DB($tableName, $userId, $params['id'], 'send_status' , '-20');
 			$message = json_encode($errors);
 			return static::create_response($message, 403 );
 		}
 
-		return '';
+		return static::create_response( $res, 403 );
+	}
+
+	// Update DB
+	public static function update_DB($db, $userId, $id, $column, $data) {
+		global $wpdb;
+
+		$tableName = $wpdb->prefix . $db;
+
+		$MAMainUser = get_user_meta( $userId, 'MAMainUser', true );
+		$mainUser = $MAMainUser === '' ? $userId : $MAMainUser;
+
+		$data_update = array($column => $data);
+		$data_where = array('id' => $id, 'main_user_id' => $mainUser);
+		$update = $wpdb->update($tableName , $data_update, $data_where);
+
+		return $update;
 	}
 
 	// 6- eslahe bill
@@ -394,7 +431,7 @@ class Bills extends Registrerar {
 		$data['total'] = $total;
 		$data['result'] = $result;
 
-		return $data;
+		return static::create_response( $data, 200 );
 	}
 
 	// Get total Bill
@@ -421,5 +458,29 @@ class Bills extends Registrerar {
 	// Get Single Bill
 	public static function get_single_bill($request) {
 
+	}
+
+	// Send to tax portal (curl)
+	public static function send_to_tax_portal($data) {
+		$body = wp_json_encode( $data );
+
+		$response = wp_remote_post( self::$sendURL, array(
+			'method'      => 'POST',
+			'body'        => $body,
+			'headers'     => [
+				'Content-Type' => 'application/json',
+			],
+			'timeout'     => 60,
+			'redirection' => 5,
+			'blocking'    => true,
+			'httpversion' => '1.0',
+			'sslverify'   => false,
+			'data_format' => 'body',
+			)
+		);
+
+		$result = is_array($response['body']) ? json_decode($response['body']) : $response['body'];
+
+		return $result;
 	}
 }
