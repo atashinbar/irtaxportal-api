@@ -312,28 +312,37 @@ class Bills extends Registrerar {
 			"user_name"=> $params['company']['shenaseYekta'],
 			"private_key"=> $params['company']['privateCode'],
 			"is_sandbox"=> (int)$params['sandbox'],
-			"uid"=> $this->guidv4(),
+			"uid"=> General::generateUidv4(),
 			"invoice"=> $invoice
 		);
 
 		$result = self::send_to_tax_portal($data);
 
+		$tableName = (int)$params['sandbox'] === 1 ?  self::$sandbox_DB_name : self::$main_DB_name ;
 		if (isset($result->success) && $result->success === true) {
-			$tableName = $params['sandbox'] === 'sandbox' ?  self::$sandbox_DB_name : self::$main_DB_name ;
 			$db_result = self::update_DB($tableName, $userId, $params['id'], 'send_status' , '-1');
+			if( $db_result === 1 ) {
+				$time = time();
+				$id = 'nested-' . $params['id'] . '-' . $time;
+				$object = new \stdClass();
+   				$object->id = $id;
+   				$object->submit_date = $time;
+   				$object->send_status = '-1';
+   				$object->irtaxid = $result->taxId;
+   				$object->ref_number = $result->referenceNumber;
 
-			$invoiceQuery="
-				UPDATE ".$this->invoiceTable."
-				SET invoice_status='-1', invoice_id='".$result->taxId."', invoice_reference_number='".$result->referenceNumber."', submit_date='".floor(microtime(true) * 1000)."'
-				WHERE invoice_id = '".$info['data']['invoice_id']."'";
-			if( mysqli_query($this->dbConnect, $invoiceQuery)) {
-				$message = "فاکتور شما با موفقیت ابطال شد";
-				$status = 1;
-				$this->response($status,$message);
+				$update_nested = self::update_DB($tableName, $userId, $params['id'], 'nested' , $object);
+				return $update_nested;
+				if ($update_nested === 1) {
+					$message = "فاکتور شما با موفقیت ابطال شد";
+					return static::create_response( $message, 200 );
+				} else {
+					$message = "ابطال فاکتور با خطا مواجه شد";
+					return static::create_response( $message, 403 );
+				}
 			} else {
 				$message = "ابطال فاکتور با خطا مواجه شد";
-				$status = 0;
-				$this->response($status,$message);
+				return static::create_response( $message, 403 );
 			}
 		}
 
@@ -362,7 +371,7 @@ class Bills extends Registrerar {
 
 		$status = $res->success;
 		$result = $res->result;
-		$errors = $res[0]->erorrs;
+		$errors = $result[0]->erorrs;
 
 		$tableName = (int)$params['sandbox'] === 1 ?  self::$sandbox_DB_name : self::$main_DB_name ;
 		if ($result[0]->status == 'PENDING') {
@@ -392,6 +401,22 @@ class Bills extends Registrerar {
 
 		$MAMainUser = get_user_meta( $userId, 'MAMainUser', true );
 		$mainUser = $MAMainUser === '' ? $userId : $MAMainUser;
+
+		if ($column === 'nested') {
+			$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT nested FROM $tableName WHERE id = $id AND main_user_id = $mainUser" ) );
+			$nested = isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
+			$time = $data->submit_date;
+
+			if ($nested === 0 || $nested === '' || is_empty($nested) ||  is_null($nested) || $nested === '0' ) {
+				$object = new \stdClass();
+				$object->$time = $data;
+				$data = $object;
+			} else {
+				$nested->$time = $data;
+				$data = $nested;
+			}
+			$data = json_encode($data);
+		}
 
 		$data_update = array($column => $data);
 		$data_where = array('id' => $id, 'main_user_id' => $mainUser);
@@ -479,8 +504,58 @@ class Bills extends Registrerar {
 			)
 		);
 
-		$result = is_array($response['body']) ? json_decode($response['body']) : $response['body'];
+		$result = self::json_validate($response['body']) ? json_decode($response['body']) : $response['body'];
 
 		return $result;
+	}
+
+	public static function json_validate($string){
+		// decode the JSON data
+		$result = json_decode($string);
+
+		// switch and check possible JSON errors
+		switch (json_last_error()) {
+			case JSON_ERROR_NONE:
+				$error = ''; // JSON is valid // No error has occurred
+				break;
+			case JSON_ERROR_DEPTH:
+				$error = 'The maximum stack depth has been exceeded.';
+				break;
+			case JSON_ERROR_STATE_MISMATCH:
+				$error = 'Invalid or malformed JSON.';
+				break;
+			case JSON_ERROR_CTRL_CHAR:
+				$error = 'Control character error, possibly incorrectly encoded.';
+				break;
+			case JSON_ERROR_SYNTAX:
+				$error = 'Syntax error, malformed JSON.';
+				break;
+			// PHP >= 5.3.3
+			case JSON_ERROR_UTF8:
+				$error = 'Malformed UTF-8 characters, possibly incorrectly encoded.';
+				break;
+			// PHP >= 5.5.0
+			case JSON_ERROR_RECURSION:
+				$error = 'One or more recursive references in the value to be encoded.';
+				break;
+			// PHP >= 5.5.0
+			case JSON_ERROR_INF_OR_NAN:
+				$error = 'One or more NAN or INF values in the value to be encoded.';
+				break;
+			case JSON_ERROR_UNSUPPORTED_TYPE:
+				$error = 'A value of a type that cannot be encoded was given.';
+				break;
+			default:
+				$error = 'Unknown JSON error occured.';
+				break;
+		}
+
+		if ($error !== '') {
+			// throw the Exception or exit // or whatever :)
+			exit($error);
+		}
+
+		// everything is OK
+		return true;
 	}
 }
