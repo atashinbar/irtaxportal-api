@@ -332,7 +332,7 @@ class Bills extends Registrerar {
    				$object->ref_number = $result->referenceNumber;
 
 				$update_nested = self::update_DB($tableName, $userId, $params['id'], 'nested' , $object);
-				return $update_nested;
+
 				if ($update_nested === 1) {
 					$message = "فاکتور شما با موفقیت ابطال شد";
 					return static::create_response( $message, 200 );
@@ -407,14 +407,15 @@ class Bills extends Registrerar {
 			$nested = isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
 			$time = $data->submit_date;
 
-			if ($nested === 0 || $nested === '' || is_empty($nested) ||  is_null($nested) || $nested === '0' ) {
+			if ( isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ) {
+				$nested->$time = $data;
+				$data = $nested;
+			} else {
 				$object = new \stdClass();
 				$object->$time = $data;
 				$data = $object;
-			} else {
-				$nested->$time = $data;
-				$data = $nested;
 			}
+
 			$data = json_encode($data);
 		}
 
