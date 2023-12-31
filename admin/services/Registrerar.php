@@ -273,6 +273,18 @@ class Registrerar {
 				),
 			)
 		);
+
+		register_rest_route(
+			'MoadianAbzar/v1',
+			'allData',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_all_data' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				)
+			)
+		);
 	}
 
 	/**
@@ -589,5 +601,14 @@ class Registrerar {
 	 */
 	public static function update_settings( $request ) {
 		return Settings::update_settings( $request );
+	}
+
+	/**
+	 * get all data
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_all_data( $request ) {
+		return General::get_all_data( $request );
 	}
 }

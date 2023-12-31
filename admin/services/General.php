@@ -100,4 +100,48 @@ class General extends Registrerar {
 		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 	}
 
+	public static function get_all_data($request) {
+
+		static::check_user_id('check');
+		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
+
+		global $wpdb;
+		$tablename	= $wpdb->prefix . "MA_customers";
+		$customers		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
+		if ( ! is_array( $customers ) ) {
+			$data['customers'] = ['customers'=>'{}'];
+        } else {
+			$data['customers'] = $customers;
+		}
+
+		$tablename	= $wpdb->prefix . "MA_companies";
+		$companies		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
+		if ( ! is_array( $companies ) ) {
+			$data['companies'] = ['companies'=>'{}'];
+        } else {
+			$data['companies'] = $companies;
+		}
+
+        $tablename = $wpdb->prefix . "MA_products";
+        $products = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", $userId), ARRAY_A);
+
+        if ( ! is_array( $products ) ) {
+			$data['products'] = [];
+        } else {
+			$data['products'] = $products;
+		}
+
+		$tablename = $wpdb->prefix . "MA_settings";
+        $settings = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", $userId), ARRAY_A);
+
+        if (!is_array($settings)) {
+			$data['settings'] = [];
+        } else {
+			$data['settings'] = $settings;
+		}
+
+		return static::create_response( $data, 200 );
+
+	}
+
 }

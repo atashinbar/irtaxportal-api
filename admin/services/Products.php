@@ -20,7 +20,6 @@ class Products extends Registrerar {
         $params	= $request->get_params();
 
 		static::check_user_id('check');
-
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
         global $wpdb;
