@@ -478,7 +478,7 @@ class Bills extends Registrerar {
 			return static::create_response( $total, 200 );
 		}
 
-		return static::create_response( 'مشکلی پیش آمده است', 200 );
+		return static::create_response( 'مشکلی پیش آمده است', 403 );
 	}
 
 	// Get Single Bill
