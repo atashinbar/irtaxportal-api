@@ -462,7 +462,6 @@ class Bills extends Registrerar {
 
 	// Get total Bill
 	public static function get_total_bills($request) {
-
 		$params	= $request->get_params();
 
 		// Check User id
@@ -471,9 +470,9 @@ class Bills extends Registrerar {
 
 		global $wpdb;
 		$db			= sanitize_text_field( $params['database'] );
+		$db 		= $db === 'sandbox' ? self::$sandbox_DB_name : self::$main_DB_name ;
 		$tablename	= $wpdb->prefix . $db;
 		$total		= $wpdb->get_var( "SELECT COUNT(*) FROM `$tablename` WHERE main_user_id = $userId" );
-
 		if ( $total ) {
 			return static::create_response( $total, 200 );
 		}
@@ -482,8 +481,10 @@ class Bills extends Registrerar {
 	}
 
 	// Get Single Bill
-	public static function get_single_bill($request) {
+	public static function get_bill($request) {
+		$params	= $request->get_params();
 
+		return $params;
 	}
 
 	// Send to tax portal (curl)
