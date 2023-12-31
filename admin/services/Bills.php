@@ -494,7 +494,7 @@ class Bills extends Registrerar {
 		$tablename	= $wpdb->prefix . self::$main_DB_name;
 		$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT form_data FROM $tableName WHERE id = $singleId AND main_user_id = $mainUser" ) );
 
-		return $params;
+		return static::create_response( $db_data, 200 );
 	}
 
 	// Send to tax portal (curl)
