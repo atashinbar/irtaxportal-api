@@ -11,6 +11,9 @@ defined( 'ABSPATH' ) || exit;
 
 class General extends Registrerar {
 
+	private static $main_DB_name = 'MA_main_bill';
+	private static $sandbox_DB_name = 'MA_sandbox_bill';
+
 	/**
 	 * Send Code.
 	 *
@@ -101,7 +104,7 @@ class General extends Registrerar {
 	}
 
 	public static function get_all_data($request) {
-
+		$params	= $request->get_params();
 		static::check_user_id('check');
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
@@ -138,6 +141,14 @@ class General extends Registrerar {
 			$data['settings'] = [];
         } else {
 			$data['settings'] = $settings;
+		}
+
+		$db			= sanitize_text_field( $params['database'] );
+		$db 		= $db === 'sandbox' ? self::$sandbox_DB_name : self::$main_DB_name ;
+		$tablename	= $wpdb->prefix . $db;
+		$total		= $wpdb->get_var( "SELECT COUNT(*) FROM `$tablename` WHERE main_user_id = $userId" );
+		if ( $total ) {
+			$data['totalBills'] = $total;
 		}
 
 		return static::create_response( $data, 200 );

@@ -482,7 +482,17 @@ class Bills extends Registrerar {
 
 	// Get Single Bill
 	public static function get_bill($request) {
+		global $wpdb;
 		$params	= $request->get_params();
+
+		static::check_user_id('check');
+		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
+		$MAMainUser = get_user_meta( $userId, 'MAMainUser', true );
+		$mainUser = $MAMainUser === '' ? $userId : $MAMainUser;
+
+		$singleId = sanitize_text_field( $params['singleId'] );
+		$tablename	= $wpdb->prefix . self::$main_DB_name;
+		$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT form_data FROM $tableName WHERE id = $singleId AND main_user_id = $mainUser" ) );
 
 		return $params;
 	}
