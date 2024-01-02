@@ -47,13 +47,12 @@ class Bills extends Registrerar {
 		$data['company'] = $formData['company'];
 
 		$result = self::get_inquiry_status($data);
-
 		if ($result[0]->status === 'FAILED') {
 			return  static::create_response($result[0]->erorrs , 403 );
 		}
 
 		$final_response = 0;
-		if ( (isset($body) && !is_null($body) && isset($body->success) && $body->success) || $publishStatus === 'draft' ) {
+		if ( (isset($result) && isset($result[0]->status) && $result[0]->status === 'SUCCESS') || $publishStatus === 'draft' ) {
 			$final_response = static::save_on_DB($formData, $response,$userId);
 		}
 
@@ -275,7 +274,7 @@ class Bills extends Registrerar {
 		$formInfo = isset($formData['formData']) ? $formData['formData'] : null;
 		$publishStatus = isset($formData['publishStatus']) ? $formData['publishStatus'] : null;
 
-		$body = ($response !== '' && isset($response['body'])) ? json_decode($response['body']) : null;
+		$body = (isset($response) && !empty($response) ) ? $response : null;
 		$ref_number = !is_null($body) ? $body->referenceNumber : null;
 		$irtaxid = !is_null($body) ? $body->taxId : null;
 		$send_status = !is_null($body) && $body->success ? 0 : null;
@@ -379,7 +378,7 @@ class Bills extends Registrerar {
 	// 5- estelame vaziat
 	public static function get_inquiry($request) {
 		$params	= $request->get_params();
-		$refNumber = isset($data['ref_number']) ? $data['ref_number'] : null;
+		$refNumber = isset($params['ref_number']) ? $params['ref_number'] : null;
 		if(is_null($refNumber) || empty($refNumber)) return static::create_response( 'شماره ارجاع مالیاتی خالی است', 403 );
 
 		// Check User id
@@ -396,9 +395,15 @@ class Bills extends Registrerar {
 			return static::create_response( $message, 300 );
 		}
 		if ($result[0]->status == 'SUCCESS') {
+
 			$db_result = self::update_DB($tableName, $userId, $params['id'], 'send_status' , '1');
-			$message = "فاکتور شما با موفقیت ثبت شده است. لطفا به کارپوشه اداره مالیات مراجعه کنید";
-			return static::create_response($message, 200 );
+			if ( $db_result === 1 ){
+				$message = "فاکتور شما با موفقیت ثبت شده است. لطفا به کارپوشه اداره مالیات مراجعه کنید";
+				return static::create_response($message, 200 );
+			} elseif ($db_result === 0) {
+				$message = "فاکتور شما با موفقیت ثبت شده است. اما ذخیره وضعیت در دیتابیس با خطا مواجه شد. لطفا دوباره استعلام بگیرید.";
+				return static::create_response($message, 500 );
+			}
 		}
 		if ($result[0]->status == 'FAILED') {
 			$db_result = self::update_DB($tableName, $userId, $params['id'], 'send_status' , '-20');
@@ -406,7 +411,7 @@ class Bills extends Registrerar {
 			return static::create_response($message, 403 );
 		}
 
-		return static::create_response( $res, 403 );
+		return static::create_response( $result, 403 );
 	}
 
 	public static function get_inquiry_status($data) {
@@ -420,10 +425,10 @@ class Bills extends Registrerar {
 		);
 
 		$res = self::send_to_tax_portal($data);
-
 		$status = $res->success;
 		$result = $res->result;
 
+		if ($res->erorr) return $res;
 		return $result;
 	}
 
@@ -437,7 +442,7 @@ class Bills extends Registrerar {
 		$mainUser = $MAMainUser === '' ? $userId : $MAMainUser;
 
 		if ($column === 'nested') {
-			$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT nested FROM $tableName WHERE id = $id AND main_user_id = $mainUser" ) );
+			$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT nested FROM `$tablename` WHERE id = %d AND main_user_id = %d", array($id,$mainUser) ) );
 			$nested = isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
 			$time = $data->submit_date;
 
