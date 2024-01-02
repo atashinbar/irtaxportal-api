@@ -36,12 +36,40 @@ class Bills extends Registrerar {
 			$body = (isset($response) && !empty($response)) ? $response : null;
 		}
 
-		$final_response = '';
+		// معمولا اگر ارتباط با سامانه برقرار نشود ارور میدهد
+		if (!$body->success) {
+			return static::create_response( $body->erorr , 403 );
+		}
+
+		$formInfo = isset($formData['formData']) ? $formData['formData'] : null;
+		$data['sandbox'] = $formInfo['tins'] === 'sandbox' ? 1 : 0;
+		$data['ref_number'] = $body->referenceNumber;
+		$data['company'] = $formData['company'];
+
+		$result = self::get_inquiry_status($data);
+
+		if ($result[0]->status === 'FAILED') {
+			return  static::create_response($result[0]->erorrs , 403 );
+		}
+
+		$final_response = 0;
 		if ( (isset($body) && !is_null($body) && isset($body->success) && $body->success) || $publishStatus === 'draft' ) {
 			$final_response = static::save_on_DB($formData, $response,$userId);
 		}
 
-		return static::create_response( $final_response, 200 );
+		if ( $final_response === 1 && $publishStatus === 'draft') {
+			return static::create_response( 'صورتحساب شما با موفقیت ذخیره شد', 200 );
+		} elseif( $final_response !== 1 && $publishStatus === 'draft' ) {
+			return static::create_response( 'صورتحساب شما ذخیر نشد. لطفا دقایقی دیگر مجدد تلاش کنید', 403 );
+		}
+
+		if ( $final_response === 1 && $publishStatus === 'published' ) {
+			return static::create_response( 'صورتحساب شما با موفقیت ارسال شد. لطفا قبل از هر اقدامی، استعلام صورتحساب را انجام دهید تا وضعیت آن مشخص شود.', 200 );
+		} elseif ( $final_response !== 1 && $publishStatus === 'published' ) {
+			return static::create_response( $body, 403 );
+		}
+
+		return static::create_response( $final_response, 403 );
 	}
 
 	// 3- send function (gereftane parametr ha va jaygozin kardane unha va ersal be samaneye maliat)
@@ -199,15 +227,15 @@ class Bills extends Registrerar {
 
 		$payments = array();
 		if ($formInfo['payments']) {
-			$iinn = isset($value['iinn']) ? esc_html(  General::convertFatoEn($formInfo['iinn']) ) : null;
-			$acn = isset($value['acn']) ? esc_html(  General::convertFatoEn($formInfo['acn']) ) : null;
-			$trmn = isset($value['trmn']) ? esc_html(  General::convertFatoEn($formInfo['trmn']) ) : null;
-			$pmt = isset($value['pmt']) ? (int)(esc_html(  General::convertFatoEn($formInfo['pmt']) )) : null;
-			$trn = isset($value['trn']) ? esc_html(  General::convertFatoEn($formInfo['trn']) ) : null;
-			$pcn = isset($value['pcn']) ? esc_html(  General::convertFatoEn($formInfo['pcn']) ) : null;
-			$pid = isset($value['pid']) ? esc_html(  General::convertFatoEn($formInfo['pid']) ) : null;
-			$pdt = isset($value['pdt']) ? (int)(esc_html( $formInfo['pdt'] )) : null;
-			$pv = isset($value['pv']) ? (int)(esc_html( str_replace(',', '', General::convertFatoEn($formInfo['pv'])) )) : null;
+			$iinn = isset($formInfo['iinn']) ? esc_html(  General::convertFatoEn($formInfo['iinn']) ) : null;
+			$acn = isset($formInfo['acn']) ? esc_html(  General::convertFatoEn($formInfo['acn']) ) : null;
+			$trmn = isset($formInfo['trmn']) ? esc_html(  General::convertFatoEn($formInfo['trmn']) ) : null;
+			$pmt = isset($formInfo['pmt']) ? (int)(esc_html(  General::convertFatoEn($formInfo['pmt']) )) : null;
+			$trn = isset($formInfo['trn']) ? esc_html(  General::convertFatoEn($formInfo['trn']) ) : null;
+			$pcn = isset($formInfo['pcn']) ? esc_html(  General::convertFatoEn($formInfo['pcn']) ) : null;
+			$pid = isset($formInfo['pid']) ? esc_html(  General::convertFatoEn($formInfo['pid']) ) : null;
+			$pdt = isset($formInfo['pdt']) ? (int)(esc_html( $formInfo['pdt'] )) : null;
+			$pv = isset($formInfo['pv']) ? (int)(esc_html( str_replace(',', '', General::convertFatoEn($formInfo['pv'])) )) : null;
 			$payments['iinn'] = $iinn; //شماره سوئیچ پرداخت
 			$payments['acn'] = $acn; //شماره پذیرنده فروشگاهی
 			$payments['trmn'] = $trmn; //شماره پایانه
@@ -236,7 +264,7 @@ class Bills extends Registrerar {
 		);
 
 		$result = self::send_to_tax_portal($data);
-
+		return $result;
 	}
 
 	// 2- Insert bill to DB
@@ -351,26 +379,14 @@ class Bills extends Registrerar {
 	// 5- estelame vaziat
 	public static function get_inquiry($request) {
 		$params	= $request->get_params();
-		$refNumber = isset($params['ref_number']) ? $params['ref_number'] : null;
-
+		$refNumber = isset($data['ref_number']) ? $data['ref_number'] : null;
 		if(is_null($refNumber) || empty($refNumber)) return static::create_response( 'شماره ارجاع مالیاتی خالی است', 403 );
 
 		// Check User id
 		static::check_user_id('check');
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
-		$data = array(
-			"command" => "ref",
-			"user_name"=> $params['company']['shenaseYekta'],
-			"private_key"=> $params['company']['privateCode'],
-			"is_sandbox"=> (int)$params['sandbox'],
-			"ref_number"=> $refNumber,
-		);
-
-		$res = self::send_to_tax_portal($data);
-
-		$status = $res->success;
-		$result = $res->result;
+		$result = self::get_inquiry_status($params);
 		$errors = $result[0]->erorrs;
 
 		$tableName = (int)$params['sandbox'] === 1 ?  self::$sandbox_DB_name : self::$main_DB_name ;
@@ -391,6 +407,24 @@ class Bills extends Registrerar {
 		}
 
 		return static::create_response( $res, 403 );
+	}
+
+	public static function get_inquiry_status($data) {
+		$refNumber = isset($data['ref_number']) ? $data['ref_number'] : null;
+		$data = array(
+			"command" => "ref",
+			"user_name"=> $data['company']['shenaseYekta'],
+			"private_key"=> $data['company']['privateCode'],
+			"is_sandbox"=> (int)$data['sandbox'],
+			"ref_number"=> $refNumber,
+		);
+
+		$res = self::send_to_tax_portal($data);
+
+		$status = $res->success;
+		$result = $res->result;
+
+		return $result;
 	}
 
 	// Update DB
@@ -482,7 +516,6 @@ class Bills extends Registrerar {
 
 	// Get Single Bill
 	public static function get_bill($request) {
-		global $wpdb;
 		$params	= $request->get_params();
 
 		static::check_user_id('check');
@@ -490,11 +523,12 @@ class Bills extends Registrerar {
 		$MAMainUser = get_user_meta( $userId, 'MAMainUser', true );
 		$mainUser = $MAMainUser === '' ? $userId : $MAMainUser;
 
+		global $wpdb;
 		$singleId = sanitize_text_field( $params['singleId'] );
-		$tablename	= $wpdb->prefix . self::$main_DB_name;
-		$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT form_data FROM $tableName WHERE id = $singleId AND main_user_id = $mainUser" ) );
+		$tablename	= $wpdb->prefix . self::$sandbox_DB_name;
+		$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT form_data FROM `$tablename` WHERE id = %d AND main_user_id = %d", array($singleId,$mainUser) ) );
 
-		return static::create_response( $singleId, 200 );
+		return static::create_response( $db_data, 200 );
 	}
 
 	// Send to tax portal (curl)
