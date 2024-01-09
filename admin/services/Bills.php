@@ -53,7 +53,27 @@ class Bills extends Registrerar {
 
 		$final_response = 0;
 		if ( (isset($result) && isset($result[0]->status) && $result[0]->status === 'SUCCESS') || $publishStatus === 'draft' ) {
-			$final_response = static::save_on_DB($formData, $response,$userId);
+			if ($formData['edit']){
+				$singleId = isset($formData['singleId']) ? $formData['singleId'] : null;
+				if ( $singleId ) {
+					$time = time();
+					$id = 'nested-' . $singleId . '-' . $time;
+					$tableName = $formData['formData']['tins'] === 'sandbox' ?  self::$sandbox_DB_name : self::$main_DB_name ;
+					$object = new \stdClass();
+					$object->id = $id;
+					$object->submit_date = $time;
+					$object->send_status = '0';
+					$object->irtaxid = $body->taxId;
+					$object->ref_number = $body->referenceNumber;
+					$object->sandbox = $formData['formData']['tins'] === 'sandbox' ? 1 : 0;
+
+					$final_response = self::update_DB($tableName, $userId, $singleId, 'nested' , $object);
+				}
+
+			} else {
+				$final_response = static::save_on_DB($formData, $response,$userId);
+			}
+
 		}
 
 		if ( $final_response === 1 && $publishStatus === 'draft') {
@@ -77,6 +97,7 @@ class Bills extends Registrerar {
 		$companyInfo = isset($formData['company']) ? $formData['company'] : null;
 		$customerInfo = isset($formData['customer']) ? $formData['customer'] : null;
 		$formInfo = isset($formData['formData']) ? $formData['formData'] : null;
+		$irtaxid = isset($formData['irtaxid']) ? $formData['irtaxid'] : null;
 
 		// Generate Parameters
 		$indatim = isset($formInfo['indatim']) ? (int)(esc_html( $formInfo['indatim'] )) : null;
@@ -131,6 +152,9 @@ class Bills extends Registrerar {
 		$header['tbill'] = $tbill; //مجموع صورتحساب
 		$header['inno'] =  $inno; //سریال صورتحساب داخلی حافظه مالیاتی / شماره فاکتور
 		// $header['irtaxid'] =  ""; //شماره منحصر به فرد مالیاتی صورتحساب مرجع - برای کنسل کردن یا ویرایش صورتحساب باید فعال شود
+		if ( $formData['edit'] && isset($irtaxid) && !is_null( $irtaxid ) && !empty( $irtaxid )) {
+			$header['irtaxid'] = $irtaxid;
+		}
 		$header['tob'] =  $tob; //نوع شخص خریدار
 		$header['bid'] = $bid; //شناسه ملی/ شماره ملی/ شناسه مشارکت مدنی/ کد فراگیر اتباع غیرایرانی خریدار
 		$header['tinb'] = $tinb; //شماره اقتصادی خریدار
@@ -378,6 +402,7 @@ class Bills extends Registrerar {
 	// 5- estelame vaziat
 	public static function get_inquiry($request) {
 		$params	= $request->get_params();
+
 		$refNumber = isset($params['ref_number']) ? $params['ref_number'] : null;
 		if(is_null($refNumber) || empty($refNumber)) return static::create_response( 'شماره ارجاع مالیاتی خالی است', 403 );
 
@@ -395,8 +420,8 @@ class Bills extends Registrerar {
 			return static::create_response( $message, 300 );
 		}
 		if ($result[0]->status == 'SUCCESS') {
-
 			$db_result = self::update_DB($tableName, $userId, $params['id'], 'send_status' , '1');
+			return $db_result;
 			if ( $db_result === 1 ){
 				$message = "فاکتور شما با موفقیت ثبت شده است. لطفا به کارپوشه اداره مالیات مراجعه کنید";
 				return static::create_response($message, 200 );
@@ -458,14 +483,28 @@ class Bills extends Registrerar {
 			$data = json_encode($data);
 		}
 
-		$data_update = array($column => $data);
-		$data_where = array('id' => $id, 'main_user_id' => $mainUser);
-		$update = $wpdb->update($tableName , $data_update, $data_where);
+		if (str_contains($id, 'nested')) {
+			$main_id = explode('-', $id);
+			$row_id = (int)$main_id[1];
+			$nested_id = (int)$main_id[2];
+			$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT nested  FROM $tableName WHERE id = %d AND main_user_id = %d", array( $row_id , $mainUser ) ) );
+			$nested = isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
+			$info = $nested->$nested_id;
+			$info->send_status = $data;
+			return $info;
+		} else {
+			$data_update = array($column => $data);
+			$data_where = array('id' => $id, 'main_user_id' => $mainUser);
+			$update = $wpdb->update($tableName , $data_update, $data_where);
+		}
+
+
 
 		return $update;
 	}
 
 	// 6- eslahe bill
+
 
 	// Get all Bill
 	public static function get_bills($request) {
@@ -531,7 +570,7 @@ class Bills extends Registrerar {
 		global $wpdb;
 		$singleId = sanitize_text_field( $params['singleId'] );
 		$tablename	= $wpdb->prefix . self::$sandbox_DB_name;
-		$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT form_data FROM `$tablename` WHERE id = %d AND main_user_id = %d", array($singleId,$mainUser) ) );
+		$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT form_data , send_status ,irtaxid FROM `$tablename` WHERE id = %d AND main_user_id = %d", array($singleId,$mainUser) ) );
 
 		return static::create_response( $db_data, 200 );
 	}
