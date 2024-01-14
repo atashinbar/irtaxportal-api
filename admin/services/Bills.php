@@ -377,12 +377,16 @@ class Bills extends Registrerar {
 		if (isset($result->success) && $result->success === true) {
 			$db_result = self::update_DB($tableName, $userId, $params['id'], 'send_status' , '-1');
 			if( $db_result === 1 ) {
-				$time = time();
+				if ( str_contains($params['id'], 'nested') ) {
+					$main_id = explode('-', $params['id']);
+					$params['id'] = (int)$main_id[1];
+				}
+				$time = floor(microtime(true) * 1000);
 				$id = 'nested-' . $params['id'] . '-' . $time;
 				$object = new \stdClass();
    				$object->id = $id;
    				$object->submit_date = $time;
-   				$object->send_status = '-1';
+   				$object->send_status = '-100';
    				$object->irtaxid = $result->taxId;
    				$object->ref_number = $result->referenceNumber;
 
