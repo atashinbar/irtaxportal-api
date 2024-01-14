@@ -56,7 +56,11 @@ class Bills extends Registrerar {
 			if ($formData['edit']){
 				$singleId = isset($formData['singleId']) ? $formData['singleId'] : null;
 				if ( $singleId ) {
-					$time = time();
+					if ( str_contains($singleId, 'nested') ) {
+						$main_id = explode('-', $singleId);
+						$singleId = (int)$main_id[1];
+					}
+					$time = floor(microtime(true) * 1000);
 					$id = 'nested-' . $singleId . '-' . $time;
 					$tableName = $formData['formData']['tins'] === 'sandbox' ?  self::$sandbox_DB_name : self::$main_DB_name ;
 					$object = new \stdClass();
@@ -66,10 +70,10 @@ class Bills extends Registrerar {
 					$object->irtaxid = $body->taxId;
 					$object->ref_number = $body->referenceNumber;
 					$object->sandbox = $formData['formData']['tins'] === 'sandbox' ? 1 : 0;
-
+					$object->form_data = json_encode($formData['formData'],JSON_UNESCAPED_UNICODE);
 					$final_response = self::update_DB($tableName, $userId, $singleId, 'nested' , $object);
+					return $final_response;
 				}
-
 			} else {
 				$final_response = static::save_on_DB($formData, $response,$userId);
 			}
@@ -421,7 +425,6 @@ class Bills extends Registrerar {
 		}
 		if ($result[0]->status == 'SUCCESS') {
 			$db_result = self::update_DB($tableName, $userId, $params['id'], 'send_status' , '1');
-			return $db_result;
 			if ( $db_result === 1 ){
 				$message = "فاکتور شما با موفقیت ثبت شده است. لطفا به کارپوشه اداره مالیات مراجعه کنید";
 				return static::create_response($message, 200 );
@@ -460,17 +463,14 @@ class Bills extends Registrerar {
 	// Update DB
 	public static function update_DB($db, $userId, $id, $column, $data) {
 		global $wpdb;
-
 		$tableName = $wpdb->prefix . $db;
 
 		$MAMainUser = get_user_meta( $userId, 'MAMainUser', true );
 		$mainUser = $MAMainUser === '' ? $userId : $MAMainUser;
-
 		if ($column === 'nested') {
-			$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT nested FROM `$tablename` WHERE id = %d AND main_user_id = %d", array($id,$mainUser) ) );
+			$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT nested FROM $tableName WHERE id = %d AND main_user_id = %d", array( $id , $mainUser ) ) );
 			$nested = isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
 			$time = $data->submit_date;
-
 			if ( isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ) {
 				$nested->$time = $data;
 				$data = $nested;
@@ -479,7 +479,6 @@ class Bills extends Registrerar {
 				$object->$time = $data;
 				$data = $object;
 			}
-
 			$data = json_encode($data);
 		}
 
@@ -487,18 +486,20 @@ class Bills extends Registrerar {
 			$main_id = explode('-', $id);
 			$row_id = (int)$main_id[1];
 			$nested_id = (int)$main_id[2];
-			$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT nested  FROM $tableName WHERE id = %d AND main_user_id = %d", array( $row_id , $mainUser ) ) );
+			$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT nested FROM $tableName WHERE id = %d AND main_user_id = %d", array( $row_id , $mainUser ) ) );
 			$nested = isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
 			$info = $nested->$nested_id;
 			$info->send_status = $data;
-			return $info;
-		} else {
-			$data_update = array($column => $data);
-			$data_where = array('id' => $id, 'main_user_id' => $mainUser);
-			$update = $wpdb->update($tableName , $data_update, $data_where);
+			$nested->$nested_id = $info;
+			$data = json_encode($nested);
+
+			$id = (int)$main_id[1];
+			$column = 'nested';
 		}
 
-
+		$data_update = array($column => $data);
+		$data_where = array('id' => $id, 'main_user_id' => $mainUser);
+		$update = $wpdb->update($tableName , $data_update, $data_where);
 
 		return $update;
 	}
@@ -568,10 +569,27 @@ class Bills extends Registrerar {
 		$mainUser = $MAMainUser === '' ? $userId : $MAMainUser;
 
 		global $wpdb;
+		$tableName = $wpdb->prefix . self::$sandbox_DB_name;
 		$singleId = sanitize_text_field( $params['singleId'] );
-		$tablename	= $wpdb->prefix . self::$sandbox_DB_name;
-		$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT form_data , send_status ,irtaxid FROM `$tablename` WHERE id = %d AND main_user_id = %d", array($singleId,$mainUser) ) );
+		if ( !str_contains($singleId, 'nested') ) {
+			$db_data = $wpdb->get_row( $wpdb->prepare(
+				"SELECT form_data , send_status ,irtaxid FROM " . $tableName . " WHERE `id` = %d AND `main_user_id` = %d",
+				[ $singleId , $mainUser ]
+			) );
+		} else {
+			$main_id = explode('-', $singleId);
+			$row_id = (int)$main_id[1];
+			$nested_id = (int)$main_id[2];
 
+			// $db_data = $wpdb->get_row( $wpdb->prepare( "SELECT nested FROM $tableName WHERE id = %d AND main_user_id = %d", array( $row_id , $mainUser ) ) );
+			$db_data = $wpdb->get_row( $wpdb->prepare(
+				"SELECT nested FROM " . $tableName . " WHERE `id` = %d AND `main_user_id` = %d",
+				[ $row_id , $mainUser ]
+			) );
+			$nested = isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
+			$info = $nested->$nested_id;
+			$db_data = $info;
+		}
 		return static::create_response( $db_data, 200 );
 	}
 
