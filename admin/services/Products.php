@@ -23,7 +23,7 @@ class Products extends Registrerar {
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
         global $wpdb;
-        $tablename = $wpdb->prefix . "MA_products";
+        $tablename = $wpdb->prefix . General::$MA_products;
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", $userId), ARRAY_A);
 
         if (!is_array($row)) {
@@ -52,7 +52,7 @@ class Products extends Registrerar {
 		$userId = static::check_main_user_id($userId);
 
         global $wpdb;
-        $tablename = $wpdb->prefix . "MA_products";
+        $tablename = $wpdb->prefix . General::$MA_products;
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", $userId), ARRAY_A);
 
         if (!is_array($row)) {
@@ -97,7 +97,7 @@ class Products extends Registrerar {
 		$userId = static::check_main_user_id($userId);
 
         global $wpdb;
-        $tablename = $wpdb->prefix . "MA_products";
+        $tablename = $wpdb->prefix . General::$MA_products;
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", $userId), ARRAY_A);
 
         if (is_array($row)) {

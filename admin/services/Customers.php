@@ -30,7 +30,7 @@ class Customers extends Registrerar {
 		$params['customer_id']		= isset( $params['customer_id'] ) ? sanitize_text_field( $params['customer_id'] ) : time();
 
 		global $wpdb;
-		$tablename	= $wpdb->prefix . "MA_customers";
+		$tablename	= $wpdb->prefix . General::$MA_customers;
 		$row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
 
 
@@ -81,7 +81,7 @@ class Customers extends Registrerar {
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
 		global $wpdb;
-		$tablename	= $wpdb->prefix . "MA_customers";
+		$tablename	= $wpdb->prefix . General::$MA_customers;
 		$row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
 
 		if ( is_array( $row ) ) {
@@ -126,7 +126,7 @@ class Customers extends Registrerar {
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
 		global $wpdb;
-		$tablename	= $wpdb->prefix . "MA_customers";
+		$tablename	= $wpdb->prefix . General::$MA_customers;
 		$row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
 
 		if ( ! is_array( $row ) ) {

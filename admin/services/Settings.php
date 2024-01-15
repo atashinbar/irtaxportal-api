@@ -10,9 +10,6 @@ namespace MoadianAbzar\Admin\Services;
 defined( 'ABSPATH' ) || exit;
 
 class Settings extends Registrerar {
-
-	private static $main_DB_name = 'MA_settings';
-
 	/**
 	 * Get settings.
 	 *
@@ -26,7 +23,7 @@ class Settings extends Registrerar {
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
         global $wpdb;
-        $tablename = $wpdb->prefix . self::$main_DB_name;
+        $tablename = $wpdb->prefix . General::$MA_settings;
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", $userId), ARRAY_A);
 
         if (!is_array($row)) {
@@ -49,7 +46,7 @@ class Settings extends Registrerar {
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
         global $wpdb;
-        $tablename = $wpdb->prefix . self::$main_DB_name;
+        $tablename = $wpdb->prefix . General::$MA_settings;
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", $userId), ARRAY_A);
         if (!is_array($row)) {
             $settings    = json_encode($params,JSON_UNESCAPED_UNICODE);

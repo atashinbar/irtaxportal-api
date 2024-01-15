@@ -11,11 +11,6 @@ defined( 'ABSPATH' ) || exit;
 
 class Bills extends Registrerar {
 
-	// DB name
-	private static $main_DB_name = 'MA_main_bill';
-	private static $sandbox_DB_name = 'MA_sandbox_bill';
-	private static $sendURL = 'https://taxportal.woobill.ir/';
-
 	// 1- ersale bill be portale maliat
 	public static function send_bill($request) {
 		$params	= $request->get_params();
@@ -52,7 +47,7 @@ class Bills extends Registrerar {
 		}
 
 		$final_response = 0;
-		if ( (isset($result) && isset($result[0]->status) && $result[0]->status === 'SUCCESS') || $publishStatus === 'draft' ) {
+		if ( (isset($result) && isset($result[0]->status) && ($result[0]->status === 'SUCCESS' || $result[0]->status === 'PENDING') ) || $publishStatus === 'draft' ) {
 			if ($formData['edit']){
 				$singleId = isset($formData['singleId']) ? $formData['singleId'] : null;
 				if ( $singleId ) {
@@ -62,7 +57,7 @@ class Bills extends Registrerar {
 					}
 					$time = floor(microtime(true) * 1000);
 					$id = 'nested-' . $singleId . '-' . $time;
-					$tableName = $formData['formData']['tins'] === 'sandbox' ?  self::$sandbox_DB_name : self::$main_DB_name ;
+					$tableName = $formData['formData']['tins'] === 'sandbox' ?  General::$sandbox_DB_name : General::$main_DB_name ;
 					$object = new \stdClass();
 					$object->id = $id;
 					$object->submit_date = $time;
@@ -312,7 +307,7 @@ class Bills extends Registrerar {
 		$hamkar_user_id = $MAMainUser === '' ? null : $userId;
 
 		global $wpdb;
-		$db = $formInfo['tins'] === 'sandbox' ? self::$sandbox_DB_name : self::$main_DB_name;
+		$db = $formInfo['tins'] === 'sandbox' ? General::$sandbox_DB_name : General::$main_DB_name;
 		$tablename = $wpdb->prefix . $db;
 		$sql = $wpdb->prepare("INSERT INTO `$tablename` (
 			`customer_id`,
@@ -373,7 +368,7 @@ class Bills extends Registrerar {
 
 		$result = self::send_to_tax_portal($data);
 
-		$tableName = (int)$params['sandbox'] === 1 ?  self::$sandbox_DB_name : self::$main_DB_name ;
+		$tableName = (int)$params['sandbox'] === 1 ?  General::$sandbox_DB_name : General::$main_DB_name ;
 		if (isset($result->success) && $result->success === true) {
 			$db_result = self::update_DB($tableName, $userId, $params['id'], 'send_status' , '-1');
 			if( $db_result === 1 ) {
@@ -389,7 +384,6 @@ class Bills extends Registrerar {
    				$object->send_status = '-100';
    				$object->irtaxid = $result->taxId;
    				$object->ref_number = $result->referenceNumber;
-
 				$update_nested = self::update_DB($tableName, $userId, $params['id'], 'nested' , $object);
 
 				if ($update_nested === 1) {
@@ -411,7 +405,7 @@ class Bills extends Registrerar {
 	public static function get_inquiry($request) {
 		$params	= $request->get_params();
 
-		$refNumber = isset($params['ref_number']) ? $params['ref_number'] : null;
+		$refNumber = isset($params['ref_number']) ? sanitize_text_field( $params['ref_number'] ) : null;
 		if(is_null($refNumber) || empty($refNumber)) return static::create_response( 'شماره ارجاع مالیاتی خالی است', 403 );
 
 		// Check User id
@@ -421,7 +415,7 @@ class Bills extends Registrerar {
 		$result = self::get_inquiry_status($params);
 		$errors = $result[0]->erorrs;
 
-		$tableName = (int)$params['sandbox'] === 1 ?  self::$sandbox_DB_name : self::$main_DB_name ;
+		$tableName = (int)$params['sandbox'] === 1 ?  General::$sandbox_DB_name : General::$main_DB_name ;
 		if ($result[0]->status == 'PENDING') {
 			$db_result = self::update_DB($tableName, $userId, $params['id'], 'send_status' , '-10');
 			$message = "فاکتور شما در حال ثبت در سامانه است. لطفا ساعاتی دیگر مجدد استعلام بگیرید";
@@ -472,10 +466,13 @@ class Bills extends Registrerar {
 		$MAMainUser = get_user_meta( $userId, 'MAMainUser', true );
 		$mainUser = $MAMainUser === '' ? $userId : $MAMainUser;
 		if ($column === 'nested') {
-			$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT nested FROM $tableName WHERE id = %d AND main_user_id = %d", array( $id , $mainUser ) ) );
+			$db_data = $wpdb->get_row( $wpdb->prepare(
+				"SELECT nested FROM " . $tableName . " WHERE `id` = %d AND `main_user_id` = %d",
+				[ $id , $mainUser ]
+			) );
 			$nested = isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
 			$time = $data->submit_date;
-			if ( isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ) {
+			if ( $nested !== 0 ) {
 				$nested->$time = $data;
 				$data = $nested;
 			} else {
@@ -490,7 +487,10 @@ class Bills extends Registrerar {
 			$main_id = explode('-', $id);
 			$row_id = (int)$main_id[1];
 			$nested_id = (int)$main_id[2];
-			$db_data = $wpdb->get_row( $wpdb->prepare( "SELECT nested FROM $tableName WHERE id = %d AND main_user_id = %d", array( $row_id , $mainUser ) ) );
+			$db_data = $wpdb->get_row( $wpdb->prepare(
+				"SELECT nested FROM " . $tableName . " WHERE `id` = %d AND `main_user_id` = %d",
+				[ $row_id , $mainUser ]
+			) );
 			$nested = isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
 			$info = $nested->$nested_id;
 			$info->send_status = $data;
@@ -508,9 +508,6 @@ class Bills extends Registrerar {
 		return $update;
 	}
 
-	// 6- eslahe bill
-
-
 	// Get all Bill
 	public static function get_bills($request) {
 		$params	= $request->get_params();
@@ -523,7 +520,7 @@ class Bills extends Registrerar {
         $pagenum = isset( $params['tableParams']['pagination']['current'] ) ? absint( $params['tableParams']['pagination']['current'] ) : 1;
         $limit = $params['tableParams']['pagination']['pageSize'];
         $offset = ($pagenum-1) * $limit;
-		$db = $params['database'] === 'sandbox' ? self::$sandbox_DB_name : self::$main_DB_name;
+		$db = $params['database'] === 'sandbox' ? General::$sandbox_DB_name : General::$main_DB_name;
 		$tablename = $wpdb->prefix . $db;
 
 		$total = $wpdb->get_var( "SELECT COUNT(*) FROM `$tablename` WHERE main_user_id = $userId" );
@@ -553,7 +550,7 @@ class Bills extends Registrerar {
 
 		global $wpdb;
 		$db			= sanitize_text_field( $params['database'] );
-		$db 		= $db === 'sandbox' ? self::$sandbox_DB_name : self::$main_DB_name ;
+		$db 		= $db === 'sandbox' ? General::$sandbox_DB_name : General::$main_DB_name ;
 		$tablename	= $wpdb->prefix . $db;
 		$total		= $wpdb->get_var( "SELECT COUNT(*) FROM `$tablename` WHERE main_user_id = $userId" );
 		if ( $total ) {
@@ -573,7 +570,7 @@ class Bills extends Registrerar {
 		$mainUser = $MAMainUser === '' ? $userId : $MAMainUser;
 
 		global $wpdb;
-		$tableName = $wpdb->prefix . self::$sandbox_DB_name;
+		$tableName = sanitize_text_field( $params['sandbox'] ) === '1' ? $wpdb->prefix . General::$sandbox_DB_name : $wpdb->prefix . General::$main_DB_name ;
 		$singleId = sanitize_text_field( $params['singleId'] );
 		if ( !str_contains($singleId, 'nested') ) {
 			$db_data = $wpdb->get_row( $wpdb->prepare(
@@ -601,7 +598,7 @@ class Bills extends Registrerar {
 	public static function send_to_tax_portal($data) {
 		$body = wp_json_encode( $data );
 
-		$response = wp_remote_post( self::$sendURL, array(
+		$response = wp_remote_post( General::$sendURL, array(
 			'method'      => 'POST',
 			'body'        => $body,
 			'headers'     => [
@@ -619,55 +616,5 @@ class Bills extends Registrerar {
 		$result = self::json_validate($response['body']) ? json_decode($response['body']) : $response['body'];
 
 		return $result;
-	}
-
-	public static function json_validate($string){
-		// decode the JSON data
-		$result = json_decode($string);
-
-		// switch and check possible JSON errors
-		switch (json_last_error()) {
-			case JSON_ERROR_NONE:
-				$error = ''; // JSON is valid // No error has occurred
-				break;
-			case JSON_ERROR_DEPTH:
-				$error = 'The maximum stack depth has been exceeded.';
-				break;
-			case JSON_ERROR_STATE_MISMATCH:
-				$error = 'Invalid or malformed JSON.';
-				break;
-			case JSON_ERROR_CTRL_CHAR:
-				$error = 'Control character error, possibly incorrectly encoded.';
-				break;
-			case JSON_ERROR_SYNTAX:
-				$error = 'Syntax error, malformed JSON.';
-				break;
-			// PHP >= 5.3.3
-			case JSON_ERROR_UTF8:
-				$error = 'Malformed UTF-8 characters, possibly incorrectly encoded.';
-				break;
-			// PHP >= 5.5.0
-			case JSON_ERROR_RECURSION:
-				$error = 'One or more recursive references in the value to be encoded.';
-				break;
-			// PHP >= 5.5.0
-			case JSON_ERROR_INF_OR_NAN:
-				$error = 'One or more NAN or INF values in the value to be encoded.';
-				break;
-			case JSON_ERROR_UNSUPPORTED_TYPE:
-				$error = 'A value of a type that cannot be encoded was given.';
-				break;
-			default:
-				$error = 'Unknown JSON error occured.';
-				break;
-		}
-
-		if ($error !== '') {
-			// throw the Exception or exit // or whatever :)
-			exit($error);
-		}
-
-		// everything is OK
-		return true;
 	}
 }

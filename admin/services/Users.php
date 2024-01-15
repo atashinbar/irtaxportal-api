@@ -22,7 +22,7 @@ class Users extends Registrerar {
 		static::check_user_id('check');
 
         global $wpdb;
-        $tablename = $wpdb->prefix . "MA_users";
+        $tablename = $wpdb->prefix . General::$MA_users;
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", static::check_user_id('get')), ARRAY_A);
 
         if (!is_array($row)) {
@@ -124,7 +124,7 @@ class Users extends Registrerar {
 		add_user_meta( $extra_user_id, 'MAMainUser', static::check_user_id('get'));
 
         global $wpdb;
-        $tablename = $wpdb->prefix . "MA_users";
+        $tablename = $wpdb->prefix . General::$MA_users;
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", static::check_user_id('get')), ARRAY_A);
 
         if (!is_array($row)) {
@@ -196,7 +196,7 @@ class Users extends Registrerar {
 		static::check_user_id('check');
 
         global $wpdb;
-        $tablename = $wpdb->prefix . "MA_users";
+        $tablename = $wpdb->prefix . General::$MA_users;
         $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE user_id = %d", static::check_user_id('get')), ARRAY_A);
 
         if (is_array($row)) {

@@ -18,7 +18,7 @@ class Companies extends Registrerar {
 	 */
 	public static function check_mode( $code_eghtesadi ) {
 		global $wpdb;
-		$tablename		= $wpdb->prefix . "MA_licenses";
+		$tablename		= $wpdb->prefix . General::$MA_licenses;
 		$code_eghtesadi	= esc_html( $code_eghtesadi );
 		$row			= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE code_eghtesadi = %d", $code_eghtesadi ), ARRAY_A );
 		if ( ! is_array( $row ) ) {
@@ -76,7 +76,7 @@ class Companies extends Registrerar {
 			$response = static::active_license( $params['license'], $params['cod_eqtesadi'] );
 			if ( $response['success'] ) {
 
-				$MA_companies_table	= $wpdb->prefix . "MA_companies";
+				$MA_companies_table	= $wpdb->prefix . General::$MA_companies;
 				$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$MA_companies_table` WHERE user_id = %d", $userId ), ARRAY_A );
 
 				if ( ! is_array( $row ) ) {
@@ -91,7 +91,7 @@ class Companies extends Registrerar {
 				}
 
 				if ( $add_to_MA_companies === 1 ) {
-					$MA_licenses_table	= $wpdb->prefix . "MA_licenses";
+					$MA_licenses_table	= $wpdb->prefix . General::$MA_licenses;
 					$add_to_MA_licenses	= $wpdb->query(
 						$wpdb->prepare(
 							"INSERT INTO `$MA_licenses_table` ( `license`, `code_eghtesadi`, `price_id` ) values (%s, %s, %d)",
@@ -115,12 +115,12 @@ class Companies extends Registrerar {
 				return static::create_response( $message, 403 );
 			}
 		} else if ( $mode === 2 ) {
-			$tablename	= $wpdb->prefix . "MA_licenses";
+			$tablename	= $wpdb->prefix . General::$MA_licenses;
 			$MA_licenses_row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE code_eghtesadi = %d", $params['cod_eqtesadi'] ), ARRAY_A );
 			if ( $MA_licenses_row['license'] != $params['license'] )
 				return static::create_response( 'کد اقتصادی بر روی لایسنس دیگری فعال شده است. لطفا لایسنس درست را انتخاب کنید', 403 );
 
-			$MA_companies_table	= $wpdb->prefix . "MA_companies";
+			$MA_companies_table	= $wpdb->prefix . General::$MA_companies;
 			$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$MA_companies_table` WHERE user_id = %d", $userId ), ARRAY_A );
 
 			if ( ! is_array( $row ) ) {
@@ -236,7 +236,7 @@ class Companies extends Registrerar {
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
 		global $wpdb;
-		$tablename	= $wpdb->prefix . "MA_companies";
+		$tablename	= $wpdb->prefix . General::$MA_companies;
 		$row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
 
 		if ( is_array( $row ) ) {
@@ -281,7 +281,7 @@ class Companies extends Registrerar {
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
 
 		global $wpdb;
-		$tablename	= $wpdb->prefix . "MA_companies";
+		$tablename	= $wpdb->prefix . General::$MA_companies;
 		$row		= $wpdb->get_row( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
 
 		if ( ! is_array( $row ) ) {

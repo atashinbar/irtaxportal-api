@@ -11,14 +11,22 @@ defined( 'ABSPATH' ) || exit;
 
 class General extends Registrerar {
 
-	private static $main_DB_name = 'MA_main_bill';
-	private static $sandbox_DB_name = 'MA_sandbox_bill';
+	public static $main_DB_name = 'MA_main_bill';
+	public static $sandbox_DB_name = 'MA_sandbox_bill';
+	public static $MA_customers = 'MA_customers';
+	public static $MA_companies = 'MA_companies';
+	public static $MA_licenses = 'MA_licenses';
+	public static $MA_products = 'MA_products';
+	public static $MA_settings = 'MA_settings';
+	public static $MA_users = 'MA_users';
+	public static $sendURL = 'https://taxportal.woobill.ir/';
 
 	/**
 	 * Send Code.
 	 *
 	 * @since 1.0.0
 	 */
+	// Send code from FarazSMS
 	public static function sendCodeFarazSMS( $mobile, $pattern, $code ) {
 		//FarazSMS
 		$username = "09126183621";
@@ -36,23 +44,8 @@ class General extends Registrerar {
         return $response;
 	}
 
+	// Send code from mellipayak
 	public static function sendCodeMelliPayamak($mobile,$pattern,$code) {
-		//MelliPayamak
-		// $username = "9355012489";
-        // $password = "5f367c";
-        // $from = "+983000505";
-        // $pattern_code = (int)$pattern;
-        // $to = $mobile;
-        // $input_data = array($code);
-        // $url = "http://api.payamak-panel.com/post/Send.asmx?wsdl" . $username . "&password=" . urlencode($password) . "&from=$from&to=" . $to . "&input_data=" . urlencode(json_encode($input_data)) . "&bodyId=$pattern_code";
-        // $handler = curl_init($url);
-        // curl_setopt($handler, CURLOPT_CUSTOMREQUEST, "POST");
-        // curl_setopt($handler, CURLOPT_POSTFIELDS, $input_data);
-        // curl_setopt($handler, CURLOPT_RETURNTRANSFER, true);
-        // $response = curl_exec($handler);
-        // return $response;
-
-
 		$url = 'https://rest.payamak-panel.com/api/SendSMS/BaseServiceNumber';
 		$data = array(
 			'username'=>'9355012489',
@@ -80,6 +73,7 @@ class General extends Registrerar {
 
 	}
 
+	// Generate PIN
 	public static function generatePIN($digits = 4){
         $i = 0; //counter
         $pin = ""; //our default pin is blank.
@@ -91,10 +85,12 @@ class General extends Registrerar {
         return $pin;
     }
 
+	// COnver FA number to EN number
 	public static function convertFatoEn($string) {
 		return strtr($string, array('۰'=>'0', '۱'=>'1', '۲'=>'2', '۳'=>'3', '۴'=>'4', '۵'=>'5', '۶'=>'6', '۷'=>'7', '۸'=>'8', '۹'=>'9', '٠'=>'0', '١'=>'1', '٢'=>'2', '٣'=>'3', '٤'=>'4', '٥'=>'5', '٦'=>'6', '٧'=>'7', '٨'=>'8', '٩'=>'9'));
 	}
 
+	// Generate UID code
 	public static function generateUidv4($data = null) {
 		$data = $data ?? random_bytes(16);
 		assert(strlen($data) == 16);
@@ -103,6 +99,7 @@ class General extends Registrerar {
 		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 	}
 
+	// Get all date when app is loading
 	public static function get_all_data($request) {
 		$params	= $request->get_params();
 		static::check_user_id('check');
@@ -153,6 +150,57 @@ class General extends Registrerar {
 
 		return static::create_response( $data, 200 );
 
+	}
+
+	// JSON Validator
+	public static function json_validate($string){
+		// decode the JSON data
+		$result = json_decode($string);
+
+		// switch and check possible JSON errors
+		switch (json_last_error()) {
+			case JSON_ERROR_NONE:
+				$error = ''; // JSON is valid // No error has occurred
+				break;
+			case JSON_ERROR_DEPTH:
+				$error = 'The maximum stack depth has been exceeded.';
+				break;
+			case JSON_ERROR_STATE_MISMATCH:
+				$error = 'Invalid or malformed JSON.';
+				break;
+			case JSON_ERROR_CTRL_CHAR:
+				$error = 'Control character error, possibly incorrectly encoded.';
+				break;
+			case JSON_ERROR_SYNTAX:
+				$error = 'Syntax error, malformed JSON.';
+				break;
+			// PHP >= 5.3.3
+			case JSON_ERROR_UTF8:
+				$error = 'Malformed UTF-8 characters, possibly incorrectly encoded.';
+				break;
+			// PHP >= 5.5.0
+			case JSON_ERROR_RECURSION:
+				$error = 'One or more recursive references in the value to be encoded.';
+				break;
+			// PHP >= 5.5.0
+			case JSON_ERROR_INF_OR_NAN:
+				$error = 'One or more NAN or INF values in the value to be encoded.';
+				break;
+			case JSON_ERROR_UNSUPPORTED_TYPE:
+				$error = 'A value of a type that cannot be encoded was given.';
+				break;
+			default:
+				$error = 'Unknown JSON error occured.';
+				break;
+		}
+
+		if ($error !== '') {
+			// throw the Exception or exit // or whatever :)
+			exit($error);
+		}
+
+		// everything is OK
+		return true;
 	}
 
 }
