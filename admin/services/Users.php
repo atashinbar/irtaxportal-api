@@ -268,4 +268,16 @@ class Users extends Registrerar {
 		else return static::create_response( 'متاسفانه کد ارسال نشد. دقایقی دیگر مجدد تلاش کنید.', 200 );
 	}
 
+	/**
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_secret_key( $request ) {
+		static::check_user_id('check');
+
+		if ( static::check_user_id('get') ) {
+			return static::create_response( 'asdlkq#%(*#@dadb432@!#', 200 );
+		}
+	}
+
 }

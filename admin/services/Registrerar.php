@@ -83,6 +83,18 @@ class Registrerar {
 
 		register_rest_route(
 			'MoadianAbzar/v1',
+			'GetSecretKey',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_secret_key' ),
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
+
+		register_rest_route(
+			'MoadianAbzar/v1',
 			'products',
 			array(
 				array(
@@ -386,7 +398,6 @@ class Registrerar {
 		return Login::authentication( $request );
 	}
 
-
 	/**
 	 * Authentication
 	 *
@@ -484,6 +495,15 @@ class Registrerar {
 	 */
 	public function check_extra_user_data( $request ) {
 		return Users::check_extra_user_info( $request );
+	}
+
+	/**
+	 * Authentication
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_secret_key( $request ) {
+		return Users::get_secret_key( $request );
 	}
 
 	/**
