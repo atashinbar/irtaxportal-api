@@ -83,6 +83,28 @@ class Registrerar {
 
 		register_rest_route(
 			'MoadianAbzar/v1',
+			'sendLoginCode',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'send_login_code' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			'MoadianAbzar/v1',
+			'loginWithCode',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'login_with_code' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			'MoadianAbzar/v1',
 			'GetSecretKey',
 			array(
 				array(
@@ -405,6 +427,24 @@ class Registrerar {
 	 */
 	public static function logout( $request ) {
 		return Login::logoutFromWP( $request );
+	}
+
+	/**
+	 * send Login Code
+	 *
+	 * @since 1.0.0
+	 */
+	public static function send_login_code( $request ) {
+		return Login::send_login_code( $request );
+	}
+
+	/**
+	 * send Login Code
+	 *
+	 * @since 1.0.0
+	 */
+	public static function login_with_code( $request ) {
+		return Login::login_with_code( $request );
 	}
 
 	/**

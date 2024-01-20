@@ -133,4 +133,60 @@ class Login extends Registrerar {
 
 		return static::create_response( __( 'There is an unexpected error', 'moadian_abzar' ), 403 );
 	}
+
+	/**
+	 * Send login code
+	 *
+	 * @since 1.0.0
+	 */
+	public static function send_login_code( $request ) {
+		$params	= $request->get_params();
+		$mobile = sanitize_text_field($params['mobile']);
+
+		$mobile_exist = username_exists( $mobile );
+
+		if (!$mobile_exist) return static::create_response('کاربر با این شماره همراه وجود ندارد', 403 );
+
+		$pin = General::generatePIN(6);
+		$sendText = $pin;
+		$code = General::sendCodeMelliPayamak( $mobile , '165925', $sendText );
+
+		if ( $code->RetStatus === 1 ) {
+			$time = floor(microtime(true) * 1000);
+			$object = new \stdClass();
+			$object->code = $pin;
+			$object->time = $time;
+			$get_user_by = get_user_by( 'login', sanitize_text_field( $mobile ) );
+
+			$updated = update_user_meta( $get_user_by->ID, 'login_code', json_encode($object,JSON_UNESCAPED_UNICODE) );
+			$data = array('mobile'=> $mobile, 'time' => $time);
+			return static::create_response(json_encode($data), 200 );
+		} else {
+			return static::create_response('کد ارسال نشد. دقایقی دیگر مجدد تلاش کنید', 403 );
+		}
+
+		return false;
+		// return get_user_meta( $get_user_by->ID, 'login_code', true);
+	}
+
+	public static function login_with_code( $request ) {
+		$params	= $request->get_params();
+		$mobile = sanitize_text_field($params['mobile']);
+		$code = sanitize_text_field($params['code']);
+
+		$get_user_by = get_user_by( 'login', sanitize_text_field( $mobile ) );
+		$data = json_decode(get_user_meta( $get_user_by->ID, 'login_code', true));
+		$time_now = floor(microtime(true) * 1000);
+		$diff_milisecond = abs($time_now - $data->time);
+		$diff_second = $diff_milisecond / 1000;
+		if ( $diff_second > 120 ) {
+			return static::create_response('کد شما منقضی شده است، لطفا مجدد کد را دریافت کنید', 403 );
+		} else {
+			if ( (int)$code === $data->code ) {
+				return static::create_response('loggin', 200 );
+			} else {
+				return static::create_response('کد وارد شده اشتباه است', 403 );
+			}
+		}
+	}
 }
