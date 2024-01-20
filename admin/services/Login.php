@@ -37,49 +37,25 @@ class Login extends Registrerar {
 		$params	= $request->get_params();
 		$url = home_url('/');
 
-		// Login by Mobile number
-		if ( is_numeric( $params['username'] ) ) {
+		$login_response = wp_remote_post( $url . '?rest_route=/auth/v1/auth', array(
+			'body'    => [
+				'email' => sanitize_text_field( $params['username'] ),
+				'password' => sanitize_text_field( $params['password'] )
+			],
+		) );
 
-			$get_user_by = get_user_by( 'login', sanitize_text_field( $params['username'] ) );
+		if ($login_response['response']['code'] != 200 ) return static::create_response( 'ورود شما ناموفق بود. لطفا نام کاربری و رمز عبور خود را  به صورت صحیح وارد کنید' , 403 );
 
-			if ( ! $get_user_by ) {
-				return static::create_response( 'با این شماره موبایل اکانتی در سایت ثبت نشده است' , 403 );
-			}
+		$response = json_decode($login_response['body']);
 
-			$payload = array(
-				'iat'       => time(),
-				'email'     => sanitize_text_field( $get_user_by->user_email ),
-				'id'        => sanitize_text_field( $get_user_by->ID ),
-				'username'  => sanitize_text_field( $get_user_by->user_login ),
-			);
+		$userInfo = static::loginInfo($response);
 
-			$jwtSettings = new SimpleJWTLoginSettings(new WordPressData());
+		return static::create_response( $userInfo, 200 );
 
-			$response = [
-				'success' => true,
-				'data' => [
-					'jwt' => JWT::encode(
-						$payload,
-						JwtKeyFactory::getFactory($jwtSettings)->getPrivateKey(),
-						$jwtSettings->getGeneralSettings()->getJWTDecryptAlgorithm()
-					)
-				]
-			];
+	}
 
-		} else {
-
-			$login_response = wp_remote_post( $url . '?rest_route=/auth/v1/auth', array(
-				'body'    => [
-					'email' => sanitize_text_field( $params['username'] ),
-					'password' => sanitize_text_field( $params['password'] )
-				],
-			) );
-
-			if ($login_response['response']['code'] != 200 ) return static::create_response( 'ورود شما ناموفق بود. لطفا نام کاربری و رمز عبور خود را  به صورت صحیح وارد کنید' , 403 );
-
-			$response = json_decode($login_response['body']);
-		}
-
+	public static function loginInfo ($response) {
+		$url = home_url('/');
 		if ( isset( $response->data->jwt ) ) {
 			$jwt = $response->data->jwt;
 		} else {
@@ -110,8 +86,7 @@ class Login extends Registrerar {
 			]
 		];
 
-		return static::create_response( $userInfo, 200 );
-
+		return $userInfo;
 	}
 
 	/**
@@ -179,11 +154,38 @@ class Login extends Registrerar {
 		$time_now = floor(microtime(true) * 1000);
 		$diff_milisecond = abs($time_now - $data->time);
 		$diff_second = $diff_milisecond / 1000;
+
 		if ( $diff_second > 120 ) {
 			return static::create_response('کد شما منقضی شده است، لطفا مجدد کد را دریافت کنید', 403 );
 		} else {
-			if ( (int)$code === $data->code ) {
-				return static::create_response('loggin', 200 );
+			if ( (int)$code === (int)$data->code ) {
+				$get_user_by = get_user_by( 'login', sanitize_text_field( $mobile ) );
+
+				if ( ! $get_user_by ) {
+					return static::create_response( 'با این شماره موبایل اکانتی در سایت ثبت نشده است' , 403 );
+				}
+
+				$payload = array(
+					'iat'       => time(),
+					'email'     => sanitize_text_field( $get_user_by->user_email ),
+					'id'        => sanitize_text_field( $get_user_by->ID ),
+					'username'  => sanitize_text_field( $get_user_by->user_login ),
+				);
+				$jwtSettings = new SimpleJWTLoginSettings(new WordPressData());
+
+				$response = [
+					'success' => true,
+					'data' => [
+						'jwt' => JWT::encode(
+							$payload,
+							JwtKeyFactory::getFactory($jwtSettings)->getPrivateKey(),
+							$jwtSettings->getGeneralSettings()->getJWTDecryptAlgorithm()
+						)
+					]
+				];
+
+				$userInfo = static::loginInfo($response);
+				return static::create_response($userInfo, 200 );
 			} else {
 				return static::create_response('کد وارد شده اشتباه است', 403 );
 			}
