@@ -16,6 +16,7 @@ class Bills extends Registrerar {
 		$params	= $request->get_params();
 		$formData = isset($params['data']) && is_array($params['data']) ? $params['data']: null;
 		$publishStatus = isset($formData['publishStatus']) ? $formData['publishStatus'] : null;
+		$step = isset($formData['step']) ? $formData['step'] : null;
 
 		// Check if formData is null
 		if (is_null($formData)) return static::create_response( 'فرم شما خالی است. لطفا فرم را پر کنید و مجدد ارسال نمایید', 403 );
@@ -23,6 +24,15 @@ class Bills extends Registrerar {
 		// Check User id
 		static::check_user_id('check');
 		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
+
+		if ($step) {
+			$twoStepCode = isset($formData['twoStepCode']) ? $formData['twoStepCode'] : null;
+			if ( is_null($twoStepCode) ) return static::create_response( 'کد تایید خالی است', 403 );
+			$step_code = json_decode(get_user_meta( $userId, 'two_step_code', true));
+			if ( (int)$twoStepCode !== (int)$step_code->code) {
+				return static::create_response( 'کد وارد شده اشتباه است', 403 );
+			}
+		}
 
 		// Send and Get result from samaneye maliat
 		$response = '';
@@ -470,7 +480,7 @@ class Bills extends Registrerar {
 				"SELECT nested FROM " . $tableName . " WHERE `id` = %d AND `main_user_id` = %d",
 				[ $id , $mainUser ]
 			) );
-			$nested = isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
+			$nested = isset($db_data->nested) && $db_data->nested !== '' && General::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
 			$time = $data->submit_date;
 			if ( $nested !== 0 ) {
 				$nested->$time = $data;
@@ -491,7 +501,7 @@ class Bills extends Registrerar {
 				"SELECT nested FROM " . $tableName . " WHERE `id` = %d AND `main_user_id` = %d",
 				[ $row_id , $mainUser ]
 			) );
-			$nested = isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
+			$nested = isset($db_data->nested) && $db_data->nested !== '' && General::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
 			$info = $nested->$nested_id;
 			$info->send_status = $data;
 			$nested->$nested_id = $info;
@@ -587,7 +597,7 @@ class Bills extends Registrerar {
 				"SELECT nested FROM " . $tableName . " WHERE `id` = %d AND `main_user_id` = %d",
 				[ $row_id , $mainUser ]
 			) );
-			$nested = isset($db_data->nested) && $db_data->nested !== '' && self::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
+			$nested = isset($db_data->nested) && $db_data->nested !== '' && General::json_validate($db_data->nested) ? json_decode($db_data->nested) : $db_data->nested;
 			$info = $nested->$nested_id;
 			$db_data = $info;
 		}
@@ -613,8 +623,36 @@ class Bills extends Registrerar {
 			)
 		);
 
-		$result = self::json_validate($response['body']) ? json_decode($response['body']) : $response['body'];
+		$result = General::json_validate($response['body']) ? json_decode($response['body']) : $response['body'];
 
 		return $result;
+	}
+
+	public static function two_step_send_bill( $request ) {
+		$params	= $request->get_params();
+		$mobile = $params['data'] ? sanitize_text_field($params['data']) : null;
+
+		if (is_null($mobile)) return static::create_response( 'شماره موبایل موجود نیست', 403 );
+
+		$pin = General::generatePIN(6);
+		$sendText = $pin;
+		$code = General::sendCodeMelliPayamak( $mobile , '165925', $sendText );
+
+		if ( $code->RetStatus === 1 ) {
+		// if ( true ) {
+			$time = floor(microtime(true) * 1000);
+			$object = new \stdClass();
+			$object->code = $pin;
+			$object->time = $time;
+			$get_user_by = get_user_by( 'login', sanitize_text_field( $mobile ) );
+
+			$updated = update_user_meta( $get_user_by->ID, 'two_step_code', json_encode($object,JSON_UNESCAPED_UNICODE) );
+			$data = array('mobile'=> $mobile, 'time' => $time);
+			return static::create_response(json_encode($data), 200 );
+		} else {
+			return static::create_response('کد ارسال نشد. دقایقی دیگر مجدد تلاش کنید', 403 );
+		}
+
+		return static::create_response( 'خطایی رخ داده است', 403 );
 	}
 }

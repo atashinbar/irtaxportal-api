@@ -278,6 +278,20 @@ class Registrerar {
 			)
 		);
 
+
+
+		register_rest_route(
+			'MoadianAbzar/v1',
+			'sendTwoStepFormCode',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'two_step_send_bill' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+			)
+		);
+
 		register_rest_route(
 			'MoadianAbzar/v1',
 			'inquiry',
@@ -634,6 +648,15 @@ class Registrerar {
 	 */
 	public static function get_total_bills( $request ) {
 		return Bills::get_total_bills( $request );
+	}
+
+	/**
+	 * send confirm code to send bill
+	 *
+	 * @since 1.0.0
+	 */
+	public static function two_step_send_bill( $request ) {
+		return Bills::two_step_send_bill( $request );
 	}
 
 	/**
