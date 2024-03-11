@@ -57,7 +57,7 @@ class Bills extends Registrerar {
 		}
 
 		$final_response = 0;
-		if ( (isset($result) && isset($result[0]->status) && ($result[0]->status === 'SUCCESS' || $result[0]->status === 'PENDING') ) || $publishStatus === 'draft' ) {
+		if ( (isset($result) && isset($result[0]->status) && ($result[0]->status === 'SUCCESS' || $result[0]->status === 'PENDING' || $result[0]->status === 'In_Progress') ) || $publishStatus === 'draft' ) {
 			if ($formData['edit']){
 				$singleId = isset($formData['singleId']) ? $formData['singleId'] : null;
 				if ( $singleId ) {
@@ -426,7 +426,7 @@ class Bills extends Registrerar {
 		$errors = $result[0]->erorrs;
 
 		$tableName = (int)$params['sandbox'] === 1 ?  General::$sandbox_DB_name : General::$main_DB_name ;
-		if ($result[0]->status == 'PENDING') {
+		if ($result[0]->status == 'PENDING' || $result[0]->status == 'In_Progress') {
 			$db_result = self::update_DB($tableName, $userId, $params['id'], 'send_status' , '-10');
 			$message = "فاکتور شما در حال ثبت در سامانه است. لطفا ساعاتی دیگر مجدد استعلام بگیرید";
 			return static::create_response( $message, 300 );
