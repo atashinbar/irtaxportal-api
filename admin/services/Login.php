@@ -120,7 +120,14 @@ class Login extends Registrerar {
 
 		$mobile_exist = username_exists( $mobile );
 
-		if (!$mobile_exist) return static::create_response('کاربر با این شماره همراه وجود ندارد', 403 );
+		if (!$mobile_exist) {
+			$userdata = array(
+				'user_login' =>  $mobile,
+				'user_email' => $mobile . '@testexample.com',
+				'user_pass'  =>  NULL // When creating an user, `user_pass` is expected.
+			);
+			$user_id = wp_insert_user( $userdata ) ;
+		}
 
 		$pin = General::generatePIN(6);
 		$sendText = $pin;
@@ -155,7 +162,7 @@ class Login extends Registrerar {
 		$diff_milisecond = abs($time_now - $data->time);
 		$diff_second = $diff_milisecond / 1000;
 
-		if ( $diff_second > 120 ) {
+		if ( $diff_second > 300 ) {
 			return static::create_response('کد شما منقضی شده است، لطفا مجدد کد را دریافت کنید', 403 );
 		} else {
 			if ( (int)$code === (int)$data->code ) {
