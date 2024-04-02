@@ -110,6 +110,20 @@ final class Manager {
 		PRIMARY KEY  (id)
 		) $charset_collate;";
 
+		$MA_tax_files = $wpdb->prefix . "MA_tax_files";
+		$sql .= "CREATE TABLE $MA_tax_files (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		user_id INT NOT NULL,
+		name longtext NOT NULL,
+		economic_code varchar(255) NOT NULL,
+		unique_code varchar(255) NOT NULL,
+		private_key longtext NOT NULL,
+		postal_code varchar(255) NOT NULL,
+		address longtext NOT NULL,
+		type varchar(255) NOT NULL,
+		PRIMARY KEY  (id)
+		) $charset_collate;";
+
 		$MA_users = $wpdb->prefix . "MA_users";
 		$sql .= "CREATE TABLE $MA_users (
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
