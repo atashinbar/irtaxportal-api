@@ -143,7 +143,7 @@ class Registrerar {
 			array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'get_company' ),
+					'callback'            => array( $this, 'get_tax_files' ),
 					'permission_callback' => array( $this , 'permission_callback' ),
 				),
 				array(
@@ -385,7 +385,8 @@ class Registrerar {
 	public static function check_user_id($type = null) {
 		$userId = get_current_user_id();
 
-        if ($type == 'check' && !$userId) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
+		if ($type == 'check' && !$userId) return static::create_response( 'شما مجوز لازم برای این کار را ندارید', 403 );
+		if ($type == 'check' && $userId) return true;
 		if ($type == 'get') return $userId;
 
 		return false;
@@ -493,8 +494,8 @@ class Registrerar {
 	 *
 	 * @since 1.0.0
 	 */
-	public static function get_company( $request ) {
-		return Companies::get_company( $request );
+	public static function get_tax_files( $request ) {
+		return Companies::get_tax_files( $request );
 	}
 
 	/**
@@ -503,7 +504,7 @@ class Registrerar {
 	 * @since 1.0.0
 	 */
 	public static function update_company( $request ) {
-		return Companies::update_company( $request );
+		return Companies::save_tax_file( $request );
 	}
 
 	/**

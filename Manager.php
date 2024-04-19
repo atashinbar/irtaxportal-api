@@ -112,17 +112,36 @@ final class Manager {
 
 		$MA_tax_files = $wpdb->prefix . "MA_tax_files";
 		$sql .= "CREATE TABLE $MA_tax_files (
-		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		key varchar(255) NOT NULL,
 		user_id INT NOT NULL,
-		name longtext NOT NULL,
+		name varchar(255) NOT NULL,
 		economic_code varchar(255) NOT NULL,
 		unique_code varchar(255) NOT NULL,
 		private_key longtext NOT NULL,
 		postal_code varchar(255) NOT NULL,
 		address longtext NOT NULL,
 		type varchar(255) NOT NULL,
+		PRIMARY KEY  (key)
+		) $charset_collate;";
+
+		$MA_file_bills = $wpdb->prefix . "MA_file_bills";
+		$sql .= "CREATE TABLE $MA_file_bills (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		key varchar(255) NOT NULL,
+		submit_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		modified_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		customer_id varchar(30) NOT NULL,
+		send_status varchar(30) NOT NULL,
+		publish_status varchar(30) NOT NULL,
+		irtaxid varchar(100) NOT NULL,
+		ref_number varchar(100) NOT NULL,
+		form_data longtext NOT NULL,
+		user_id INT NOT NULL,
+		hamkar_user_id varchar(100) NOT NULL,
+		nested longtext NOT NULL,
 		PRIMARY KEY  (id)
 		) $charset_collate;";
+
 
 		$MA_users = $wpdb->prefix . "MA_users";
 		$sql .= "CREATE TABLE $MA_users (
@@ -151,24 +170,6 @@ final class Manager {
 
 		$MA_main_bill = $wpdb->prefix . "MA_main_bill";
 		$sql .= "CREATE TABLE $MA_main_bill (
-		id mediumint(9) NOT NULL AUTO_INCREMENT,
-		submit_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		modified_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		customer_id varchar(30) NOT NULL,
-		company_id varchar(30) NOT NULL,
-		send_status varchar(30) NOT NULL,
-		publish_status varchar(30) NOT NULL,
-		irtaxid varchar(100) NOT NULL,
-		ref_number varchar(100) NOT NULL,
-		form_data longtext NOT NULL,
-		main_user_id varchar(100) NOT NULL,
-		hamkar_user_id varchar(100) NOT NULL,
-		nested longtext NOT NULL,
-		PRIMARY KEY  (id)
-		) $charset_collate;";
-
-		$MA_sandbox_bill = $wpdb->prefix . "MA_sandbox_bill";
-		$sql .= "CREATE TABLE $MA_sandbox_bill (
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
 		submit_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		modified_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

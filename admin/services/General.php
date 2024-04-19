@@ -19,6 +19,7 @@ class General extends Registrerar {
 	public static $MA_products = 'MA_products';
 	public static $MA_settings = 'MA_settings';
 	public static $MA_users = 'MA_users';
+	public static $MA_tax_files = 'MA_tax_files';
 	public static $sendURL = 'https://taxportal.woobill.ir/';
 
 	/**

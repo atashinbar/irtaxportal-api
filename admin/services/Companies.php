@@ -290,4 +290,64 @@ class Companies extends Registrerar {
 
 		return static::create_response( $row, 200 );
 	}
+
+	/**
+	* get tax files.
+	*
+	* @since 1.0.0
+	*/
+	public static function get_tax_files ($request) {
+		$params			= $request->get_params();
+
+		static::check_user_id('check');
+		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
+
+		global $wpdb;
+		$tablename	= $wpdb->prefix . General::$MA_tax_files;
+		$row		= $wpdb->get_results( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
+		if ( ! is_array( $row ) ) {
+			return static::create_response( [], 200 );
+		}
+		return static::create_response( $row, 200 );
+	}
+
+	/**
+	* save/edit tax files.
+	*
+	* @since 1.0.0
+	*/
+	public static function save_tax_file ($request) {
+		$params			= $request->get_params();
+
+		if (!static::check_user_id('check')) return;
+		$userId = static::check_main_user_id( static::check_user_id( 'get' ) );
+		$file = [];
+		$file['economic_code']	= sanitize_text_field( $params['economic_code'] );
+
+		//check exist company
+		global $wpdb;
+        $tablename = $wpdb->prefix . General::$MA_tax_files;
+        $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM `$tablename` WHERE economic_code = %d", $params['economic_code']), ARRAY_A);
+
+		if ( is_array( $row ) ) {
+			return static::create_response( 'این پرونده قبلا ثبت شده است', 403 );
+		}
+
+		$file['name']				= sanitize_text_field( $params['name'] );
+		$file['unique_code']		= sanitize_text_field( $params['unique_code'] );
+		$file['postal_code']		= sanitize_text_field( $params['postal_code'] );
+		$file['type']				= sanitize_text_field( $params['type'] );
+		$file['private_key']		= sanitize_text_field( $params['private_key'] );
+		$file['address']			= sanitize_text_field( $params['address'] );
+		$file['uuid_code'] 			= General::generateUidv4();
+
+		$sql = $wpdb->prepare("INSERT INTO `$tablename` (`key`,`user_id`, `economic_code`, `name`,`unique_code`,`postal_code`,`type`,`private_key`,`address`) values (%s,%d,%s,%s,%s,%s,%s,%s,%s)", $file['uuid_code'],$userId,$file['economic_code'], $file['name'],$file['unique_code'],$file['postal_code'],$file['type'],$file['private_key'],$file['address']);
+        $result = $wpdb->query($sql);
+
+		if ( $result === 1) {
+			return static::create_response( 'پرونده شما با موفقیت ثبت شد. برای مشاهده به صفحه اصلی داشبورد بروید', 200 );
+		} else {
+			return static::create_response( 'ثبت پرونده با مشکل مواجه شد. لطفا دقایقی دیگر مجدد تلاش کنید', 403 );
+		}
+	}
 }
