@@ -305,14 +305,21 @@ class Companies extends Registrerar {
 		global $wpdb;
 		$tablename	= $wpdb->prefix . General::$MA_tax_files;
 		$row		= $wpdb->get_results( $wpdb->prepare( "SELECT * FROM `$tablename` WHERE user_id = %d", $userId ), ARRAY_A );
-		if ( ! is_array( $row ) ) {
-			return static::create_response( [], 200 );
+
+		if ( is_array( $row ) ) {
+			foreach ($row as $key => $value) {
+				$value['key'] = $value['unique_key'];
+				$row[$key] = $value;
+			}
+			return static::create_response( $row, 200 );
 		}
-		return static::create_response( $row, 200 );
+
+		return static::create_response( [], 200 );
+
 	}
 
 	/**
-	* save/edit tax files.
+	* save tax files.
 	*
 	* @since 1.0.0
 	*/
@@ -339,9 +346,9 @@ class Companies extends Registrerar {
 		$file['type']				= sanitize_text_field( $params['type'] );
 		$file['private_key']		= sanitize_text_field( $params['private_key'] );
 		$file['address']			= sanitize_text_field( $params['address'] );
-		$file['uuid_code'] 			= General::generateUidv4();
+		$file['uuid_code'] 			= General::generateUidv4WithoutDash();
 
-		$sql = $wpdb->prepare("INSERT INTO `$tablename` (`key`,`user_id`, `economic_code`, `name`,`unique_code`,`postal_code`,`type`,`private_key`,`address`) values (%s,%d,%s,%s,%s,%s,%s,%s,%s)", $file['uuid_code'],$userId,$file['economic_code'], $file['name'],$file['unique_code'],$file['postal_code'],$file['type'],$file['private_key'],$file['address']);
+		$sql = $wpdb->prepare("INSERT INTO `$tablename` (`unique_key`,`user_id`, `economic_code`, `name`,`unique_code`,`postal_code`,`type`,`private_key`,`address`) values (%s,%d,%s,%s,%s,%s,%s,%s,%s)", $file['uuid_code'],$userId,$file['economic_code'], $file['name'],$file['unique_code'],$file['postal_code'],$file['type'],$file['private_key'],$file['address']);
         $result = $wpdb->query($sql);
 
 		if ( $result === 1) {

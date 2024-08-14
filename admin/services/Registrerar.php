@@ -161,6 +161,30 @@ class Registrerar {
 
 		register_rest_route(
 			'MoadianAbzar/v1',
+			'file',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_file_bills' ),
+					'permission_callback' => array( $this , 'permission_callback' ),
+				),
+				// array(
+				// 	'methods'             => \WP_REST_Server::EDITABLE,
+				// 	'callback'            => array( $this, 'update_company' ),
+				// 	'permission_callback' => array( $this , 'permission_callback' ),
+				// ),
+				// array(
+				// 	'methods'             => \WP_REST_Server::DELETABLE,
+				// 	'callback'            => array( $this, 'delete_company' ),
+				// 	'permission_callback' => array( $this , 'permission_callback' ),
+				// ),
+			)
+		);
+
+
+
+		register_rest_route(
+			'MoadianAbzar/v1',
 			'checkExtraUserData',
 			array(
 				array(
@@ -667,6 +691,15 @@ class Registrerar {
 	 */
 	public static function get_inquiry( $request ) {
 		return Bills::get_inquiry( $request );
+	}
+
+	/**
+	 * get file bills
+	 *
+	 * @since 1.0.0
+	 */
+	public static function get_file_bills( $request ) {
+		return Files::get_file_bills( $request );
 	}
 
 	/**

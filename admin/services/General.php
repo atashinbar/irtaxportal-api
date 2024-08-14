@@ -20,6 +20,7 @@ class General extends Registrerar {
 	public static $MA_settings = 'MA_settings';
 	public static $MA_users = 'MA_users';
 	public static $MA_tax_files = 'MA_tax_files';
+	public static $MA_files_bills = 'MA_files_bills';
 	public static $sendURL = 'https://taxportal.woobill.ir/';
 
 	/**
@@ -98,6 +99,15 @@ class General extends Registrerar {
 		$data[6] = chr(ord($data[6]) & 0x0f | 0x40);
 		$data[8] = chr(ord($data[8]) & 0x3f | 0x80);
 		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+	}
+
+	// Generate UID code without dash
+	public static function generateUidv4WithoutDash($data = null) {
+		$data = $data ?? random_bytes(16);
+		assert(strlen($data) == 16);
+		$data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+		$data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+		return vsprintf('%s%s%s%s%s%s', str_split(bin2hex($data), 4));
 	}
 
 	// Get all date when app is loading

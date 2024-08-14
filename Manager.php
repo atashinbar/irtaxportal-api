@@ -80,7 +80,7 @@ final class Manager {
 	 * @since 1.0.0
 	 */
 	public function install() {
-		$this->createProductsTable();
+		$this->createProductsTables();
 	}
 
 	/**
@@ -88,7 +88,7 @@ final class Manager {
 	 *
 	 * @since 1.0.0
 	 */
-	public function createProductsTable() {
+	public function createProductsTables() {
 		global $wpdb;
 
 		// Todo : migrate to seperate file and functions
@@ -112,7 +112,7 @@ final class Manager {
 
 		$MA_tax_files = $wpdb->prefix . "MA_tax_files";
 		$sql .= "CREATE TABLE $MA_tax_files (
-		key varchar(255) NOT NULL,
+		unique_key varchar(255) NOT NULL,
 		user_id INT NOT NULL,
 		name varchar(255) NOT NULL,
 		economic_code varchar(255) NOT NULL,
@@ -121,13 +121,12 @@ final class Manager {
 		postal_code varchar(255) NOT NULL,
 		address longtext NOT NULL,
 		type varchar(255) NOT NULL,
-		PRIMARY KEY  (key)
+		PRIMARY KEY  (unique_key)
 		) $charset_collate;";
 
-		$MA_file_bills = $wpdb->prefix . "MA_file_bills";
-		$sql .= "CREATE TABLE $MA_file_bills (
+		$MA_files_bills = $wpdb->prefix . "MA_files_bills";
+		$sql .= "CREATE TABLE $MA_files_bills (
 		id mediumint(9) NOT NULL AUTO_INCREMENT,
-		key varchar(255) NOT NULL,
 		submit_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		modified_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		customer_id varchar(30) NOT NULL,
@@ -138,10 +137,11 @@ final class Manager {
 		form_data longtext NOT NULL,
 		user_id INT NOT NULL,
 		hamkar_user_id varchar(100) NOT NULL,
-		nested longtext NOT NULL,
+		nested_unique_key varchar(255) NOT NULL,
+		main_unique_key varchar(255) NOT NULL,
+		ref_unique_key varchar(255) NOT NULL,
 		PRIMARY KEY  (id)
 		) $charset_collate;";
-
 
 		$MA_users = $wpdb->prefix . "MA_users";
 		$sql .= "CREATE TABLE $MA_users (

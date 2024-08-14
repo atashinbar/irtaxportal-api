@@ -1,6 +1,6 @@
 <?php
 /*
- * Plugin Name:       Moadianabzar API
+ * Plugin Name:       مؤدیان ابزار
  * Plugin URI:        https://irtaxportal.com
  * Description:       -
  * Version:          10.0.0
